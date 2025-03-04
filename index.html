@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Seleção de Itens</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="static/js/config.js"></script>
     <link rel="stylesheet" href="static/styles.css">
 </head>
@@ -43,13 +42,15 @@
     </div>
 
     <script>
-        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-        const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
         
         async function fetchItems() {
             try {
-                const response = await fetch("/api/supabase"); // Chama a API da Vercel
-                const data = await response.json(); // Converte para JSON
+                // Adiciona busca e filtro de lote na requisição
+                const search = document.getElementById("searchInput").value || "";
+                const lote = currentLote || 1;
+
+                const response = await fetch(`/api/supabase?search=${encodeURIComponent(search)}&lote=${lote}`);
+                const data = await response.json();
 
                 if (!response.ok) {
                     throw new Error(data.error || "Erro ao buscar dados");
@@ -61,6 +62,7 @@
                 console.error("Erro ao buscar dados da API:", error);
             }
         }
+
 
         function formatarNumero(numero) {
             return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -158,7 +160,7 @@
         }
 
         document.getElementById('searchInput').addEventListener('input', function() {
-            loadItems(this.value, currentLote);
+            fetchItems();
         });
         
         document.querySelectorAll('.filter-btn').forEach(button => {
@@ -166,11 +168,11 @@
                 document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
                 currentLote = this.dataset.lote;
-                loadItems('', currentLote);
+                fetchItems();
             });
         });
         
-        loadItems();
+        fetchItems();
     </script>
 </body>
 </html>
