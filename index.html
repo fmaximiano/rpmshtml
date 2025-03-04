@@ -45,27 +45,22 @@
     <script>
         const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
         const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
         
-        let selectedItems = new Map();
-        let currentLote = 1;
-
-        async function loadItems(search = '', lote = 1) {
+        async function fetchItems() {
             try {
-                const { data, error } = await supabase
-                    .from('licencas')
-                    .select("item, desc_catmas, valor_un_mensal, qtde_minima, lote")
-                    .eq("lote", lote)
-                    .ilike("desc_catmas", `%${search}%`);
-                
-                    if (error) throw error;
-                    console.log("Dados carregados:", data);
-                    renderTable(data);
-                } catch (error) {
-                    console.error("Erro ao carregar itens:", error);
+                const response = await fetch("/api/supabase"); // Chama a API da Vercel
+                const data = await response.json(); // Converte para JSON
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Erro ao buscar dados");
                 }
+
+                console.log("Dados recebidos:", data);
+                renderTable(data);
+            } catch (error) {
+                console.error("Erro ao buscar dados da API:", error);
             }
+        }
 
         function formatarNumero(numero) {
             return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
