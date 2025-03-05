@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Seleção de Itens</title>
-    <link rel="stylesheet" href="static/styles.css"> <!-- Ajustado para Vercel: /public/styles.css -->
+    <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
     <div class="search-container">
@@ -49,7 +49,7 @@
         let selectedItems = new Map();
         let currentLote = 1;
 
-        // Função de debounce para limitar chamadas à API
+        // Função de debounce
         function debounce(func, wait) {
             let timeout;
             return function (...args) {
@@ -85,7 +85,7 @@
             return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        // Renderiza a tabela com os itens
+        // Renderiza a tabela
         function renderTable(items) {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
@@ -96,7 +96,7 @@
                 const valorUnMensal = parseFloat(item.valor_un_mensal);
                 const quantidadeTotal = quantidadeMensal * 36;
                 const valorUnTotal = valorUnMensal * 36;
-                const valorTotal = quantidadeMensal * valorUnTotal;
+                const valorTotal = quantidadeMensal * valorUnMensal * 36; // Corrigido para valorUnMensal
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -123,7 +123,7 @@
             if (item) {
                 const quantidadeTotal = item.quantidade_mensal * 36;
                 const valorUnTotal = item.valor * 36;
-                const valorTotal = quantidadeTotal * item.valor;
+                const valorTotal = item.quantidade_mensal * item.valor * 36; // Corrigido para item.valor
 
                 document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
                 document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorUnTotal)}`;
@@ -147,6 +147,7 @@
                         selectedItems.delete(id);
                     }
                     updateSelectedItems();
+                    updateTableRow(id); // Atualiza a linha ao selecionar/desmarcar
                 });
 
                 if (selectedItems.has(checkbox.dataset.id)) {
@@ -168,7 +169,7 @@
                     if (selectedItems.has(id)) {
                         selectedItems.get(id).quantidade_mensal = quantidadeMensal;
                         updateSelectedItems();
-                        updateTableRow(id); // Atualiza a linha da tabela
+                        updateTableRow(id); // Atualiza a linha ao mudar a quantidade
                     }
                 });
             });
@@ -182,7 +183,7 @@
             selectedItems.forEach((data, id) => {
                 const quantidadeTotal = data.quantidade_mensal * 36;
                 const valorUnTotal = data.valor * 36;
-                const valorTotal = data.quantidade_mensal * valorUnTotal;
+                const valorTotal = data.quantidade_mensal * data.valor * 36; // Corrigido para data.valor
 
                 const li = document.createElement('li');
                 li.innerHTML = `
