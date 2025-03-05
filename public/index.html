@@ -4,16 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Seleção de Itens</title>
-    <link rel="stylesheet" href="static/styles.css">
+    <script src="/js/config.js"></script> <!-- Ajustado para Vercel: /public/js/config.js -->
+    <link rel="stylesheet" href="/styles.css"> <!-- Ajustado para Vercel: /public/styles.css -->
 </head>
 <body>
     <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Buscar itens..." />
+        <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Buscar itens..." 
+            aria-label="Buscar itens por descrição"
+        />
         <div class="filter-container">
-            <button class="filter-btn active" data-lote="1">LOTE 1</button>
-            <button class="filter-btn" data-lote="2">LOTE 2</button>
-            <button class="filter-btn" data-lote="3">LOTE 3</button>
-            <button class="filter-btn" data-lote="4">LOTE 4</button>
+            <button class="filter-btn active" data-lote="1" aria-label="Filtrar por Lote 1">LOTE 1</button>
+            <button class="filter-btn" data-lote="2" aria-label="Filtrar por Lote 2">LOTE 2</button>
+            <button class="filter-btn" data-lote="3" aria-label="Filtrar por Lote 3">LOTE 3</button>
+            <button class="filter-btn" data-lote="4" aria-label="Filtrar por Lote 4">LOTE 4</button>
         </div>
     </div>
     <div class="container">
@@ -41,9 +47,19 @@
     </div>
 
     <script>
-        let selectedItems = new Map(); // Corrigido
-        let currentLote = 1; // Corrigido
-        
+        let selectedItems = new Map();
+        let currentLote = 1;
+
+        // Função de debounce para limitar chamadas à API
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Busca os itens na API
         async function fetchItems() {
             try {
                 const search = document.getElementById("searchInput").value || "";
@@ -60,32 +76,39 @@
                 renderTable(data);
             } catch (error) {
                 console.error("Erro ao buscar dados da API:", error);
+                document.getElementById('tableBody').innerHTML = 
+                    '<tr><td colspan="8">Erro ao carregar dados. Tente novamente.</td></tr>';
             }
         }
 
+        // Formata números no padrão brasileiro
         function formatarNumero(numero) {
             return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
+        // Renderiza a tabela com os itens
         function renderTable(items) {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
             items.forEach(item => {
-                const itemSelecionado = selectedItems.get(item.item) || {}; // Evita erro se não estiver no Map
+                const itemSelecionado = selectedItems.get(item.item) || {};
                 const quantidadeMensal = itemSelecionado.quantidade_mensal || item.qtde_minima || 1;
                 const valorUnMensal = parseFloat(item.valor_un_mensal);
                 const quantidadeTotal = quantidadeMensal * 36;
                 const valorUnTotal = valorUnMensal * 36;
                 const valorTotal = quantidadeMensal * valorUnTotal;
-                
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" data-min="${item.qtde_minima || 1}" ${selectedItems.has(item.item) ? "checked" : ""}></td>
+                    <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" 
+                        data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
+                        data-min="${item.qtde_minima || 1}" ${selectedItems.has(item.item) ? "checked" : ""}></td>
                     <td>${item.item}</td>
                     <td>${item.desc_catmas}</td>
                     <td>R$ ${formatarNumero(valorUnMensal)}</td>
-                    <td><input type="number" class="quantidade-input" data-id="${item.item}" value="${quantidadeMensal}" min="${item.qtde_minima || 1}" step="1"></td>
+                    <td><input type="number" class="quantidade-input" data-id="${item.item}" 
+                        value="${quantidadeMensal}" min="${item.qtde_minima || 1}" step="1"></td>
                     <td class="quantidade-total" data-id="${item.item}">${quantidadeTotal}</td>
                     <td class="valor-un-total" data-id="${item.item}">R$ ${formatarNumero(valorUnTotal)}</td>
                     <td class="valor-total" data-id="${item.item}">R$ ${formatarNumero(valorTotal)}</td>
@@ -95,6 +118,21 @@
             addEventListeners();
         }
 
+        // Atualiza dinamicamente uma linha da tabela
+        function updateTableRow(id) {
+            const item = selectedItems.get(id);
+            if (item) {
+                const quantidadeTotal = item.quantidade_mensal * 36;
+                const valorUnTotal = item.valor * 36;
+                const valorTotal = quantidadeTotal * item.valor;
+
+                document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
+                document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorUnTotal)}`;
+                document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorTotal)}`;
+            }
+        }
+
+        // Adiciona os eventos
         function addEventListeners() {
             document.querySelectorAll('.item-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', function () {
@@ -131,20 +169,22 @@
                     if (selectedItems.has(id)) {
                         selectedItems.get(id).quantidade_mensal = quantidadeMensal;
                         updateSelectedItems();
+                        updateTableRow(id); // Atualiza a linha da tabela
                     }
                 });
             });
         }
 
+        // Atualiza a lista de itens selecionados
         function updateSelectedItems() {
             const selectedList = document.getElementById('selectedList');
             selectedList.innerHTML = '';
-            
+
             selectedItems.forEach((data, id) => {
                 const quantidadeTotal = data.quantidade_mensal * 36;
                 const valorUnTotal = data.valor * 36;
                 const valorTotal = data.quantidade_mensal * valorUnTotal;
-                
+
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <strong>Item:</strong> ${id} - ${data.desc} <br>
@@ -157,8 +197,10 @@
             });
         }
 
-        document.getElementById('searchInput').addEventListener('input', fetchItems);
-        
+        // Evento de busca com debounce
+        document.getElementById('searchInput').addEventListener('input', debounce(fetchItems, 300));
+
+        // Evento dos filtros de lote
         document.querySelectorAll('.filter-btn').forEach(button => {
             button.addEventListener('click', function () {
                 document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -167,7 +209,8 @@
                 fetchItems();
             });
         });
-        
+
+        // Carrega os itens iniciais
         fetchItems();
     </script>
 </body>
