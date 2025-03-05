@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Seleção de Itens</title>
-    <link rel="stylesheet" href="static/styles.css">
+    <script src="/js/config.js"></script>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <div class="search-container">
@@ -96,7 +97,7 @@
                 const valorUnMensal = parseFloat(item.valor_un_mensal);
                 const quantidadeTotal = quantidadeMensal * 36;
                 const valorUnTotal = valorUnMensal * 36;
-                const valorTotal = quantidadeMensal * valorUnMensal * 36; // Corrigido para valorUnMensal
+                const valorTotal = quantidadeMensal * valorUnMensal * 36;
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -118,17 +119,14 @@
         }
 
         // Atualiza dinamicamente uma linha da tabela
-        function updateTableRow(id) {
-            const item = selectedItems.get(id);
-            if (item) {
-                const quantidadeTotal = item.quantidade_mensal * 36;
-                const valorUnTotal = item.valor * 36;
-                const valorTotal = item.quantidade_mensal * item.valor * 36; // Corrigido para item.valor
+        function updateTableRow(id, quantidadeMensal, valorUnMensal) {
+            const quantidadeTotal = quantidadeMensal * 36;
+            const valorUnTotal = valorUnMensal * 36;
+            const valorTotal = quantidadeMensal * valorUnMensal * 36;
 
-                document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
-                document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorUnTotal)}`;
-                document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorTotal)}`;
-            }
+            document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
+            document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorUnTotal)}`;
+            document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorTotal)}`;
         }
 
         // Adiciona os eventos
@@ -147,12 +145,7 @@
                         selectedItems.delete(id);
                     }
                     updateSelectedItems();
-                    updateTableRow(id); // Atualiza a linha ao selecionar/desmarcar
                 });
-
-                if (selectedItems.has(checkbox.dataset.id)) {
-                    checkbox.checked = true;
-                }
             });
 
             document.querySelectorAll('.quantidade-input').forEach(input => {
@@ -160,16 +153,20 @@
                     const id = this.dataset.id;
                     let quantidadeMensal = parseInt(this.value) || 1;
                     const minValue = parseInt(this.min) || 1;
+                    const valorUnMensal = parseFloat(this.parentElement.parentElement.querySelector('.item-checkbox').dataset.valor);
 
                     if (quantidadeMensal < minValue) {
                         this.value = minValue;
                         quantidadeMensal = minValue;
                     }
 
+                    // Atualiza a tabela independentemente de o item estar selecionado
+                    updateTableRow(id, quantidadeMensal, valorUnMensal);
+
+                    // Atualiza selectedItems se o item estiver selecionado
                     if (selectedItems.has(id)) {
                         selectedItems.get(id).quantidade_mensal = quantidadeMensal;
                         updateSelectedItems();
-                        updateTableRow(id); // Atualiza a linha ao mudar a quantidade
                     }
                 });
             });
@@ -183,7 +180,7 @@
             selectedItems.forEach((data, id) => {
                 const quantidadeTotal = data.quantidade_mensal * 36;
                 const valorUnTotal = data.valor * 36;
-                const valorTotal = data.quantidade_mensal * data.valor * 36; // Corrigido para data.valor
+                const valorTotal = data.quantidade_mensal * data.valor * 36;
 
                 const li = document.createElement('li');
                 li.innerHTML = `
