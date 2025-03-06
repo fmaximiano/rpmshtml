@@ -19,14 +19,14 @@ export default async function handler(req, res) {
 
     let query = supabase
         .from("licencas")
-        .select("item, desc_catmas, valor_un_mensal, qtde_minima, lote"); // Campos específicos
+        .select("item, cod_catmas, desc_catmas, sku, valor_un_mensal, qtde_minima, lote"); // Campos específicos
 
     if (lote) {
         query = query.eq("lote", lote); // Filtro por lote
     }
 
     if (search) {
-        query = query.ilike("desc_catmas", `%${search}%`); // Busca no campo desc_catmas
+        query = query.or(`desc_catmas.ilike.%${search}%,sku.ilike.%${search}%`)
     }
 
     const { data, error } = await query;
