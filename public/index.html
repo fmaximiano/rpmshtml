@@ -26,14 +26,14 @@
             <table id="itemsTable">
                 <thead>
                     <tr>
-                        <th></th>
-                        <th class="sortable" data-column="item">Item &#x25B2;&#x25BC;</th>
-                        <th class="sortable" data-column="desc_catmas">Descrição CATMAS &#x25B2;&#x25BC;</th>
-                        <th class="sortable" data-column="valor_un_mensal">Valor Unitário Mensal &#x25B2;&#x25BC;</th>
-                        <th class="sortable" data-column="qtde_mensal">Qtde Mensal &#x25B2;&#x25BC;</th>
-                        <th class="sortable" data-column="qtde_total">Qtde Total &#x25B2;&#x25BC;</th>
-                        <th class="sortable" data-column="valor_un_total">Valor Unitário Total &#x25B2;&#x25BC;</th>
-                        <th class="sortable" data-column="valor_total">Valor Total &#x25B2;&#x25BC;</th>
+                        <th data-sort="checkbox"></th>
+                        <th data-sort="item">Item</th>
+                        <th data-sort="desc">Descrição CATMAS</th>
+                        <th data-sort="valorMensal">Valor Unitário Mensal</th>
+                        <th data-sort="qtdeMensal">Qtde Mensal</th>
+                        <th data-sort="qtdeTotal">Qtde Total</th>
+                        <th data-sort="valorUnTotal">Valor Unitário Total</th>
+                        <th data-sort="valorTotal">Valor Total</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -48,77 +48,231 @@
     <script>
         let selectedItems = new Map();
         let currentLote = 1;
-        let sortColumn = 'item';
-        let sortOrder = 'asc';
+        let currentSort = { column: 'item', direction: 'asc' }; // Ordenação padrão por "item"
 
+        // Função de debounce
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Busca os itens na API
         async function fetchItems() {
             try {
                 const search = document.getElementById("searchInput").value || "";
                 const lote = currentLote;
+
                 const response = await fetch(`/api/supabase?search=${encodeURIComponent(search)}&lote=${lote}`);
-                let data = await response.json();
+                const data = await response.json();
 
                 if (!response.ok) {
                     throw new Error(data.error || "Erro ao buscar dados");
                 }
-                sortTable(data);
+
+                console.log("Dados recebidos:", data);
+                sortItems(data); // Ordena os itens antes de renderizar
+                renderTable(data);
             } catch (error) {
                 console.error("Erro ao buscar dados da API:", error);
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="8">Erro ao carregar dados. Tente novamente.</td></tr>';
+                document.getElementById('tableBody').innerHTML = 
+                    '<tr><td colspan="8">Erro ao carregar dados. Tente novamente.</td></tr>';
             }
         }
 
-        function sortTable(items) {
-            items.sort((a, b) => {
-                let valueA = a[sortColumn];
-                let valueB = b[sortColumn];
-
-                if (typeof valueA === 'string') {
-                    valueA = valueA.toLowerCase();
-                    valueB = valueB.toLowerCase();
-                }
-                if (typeof valueA === 'number') {
-                    return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
-                }
-                return sortOrder === 'asc' ? (valueA > valueB ? 1 : -1) : (valueA < valueB ? 1 : -1);
-            });
-            renderTable(items);
+        // Formata números no padrão brasileiro
+        function formatarNumero(numero) {
+            return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
+        // Função para ordenar os itens
+        function sortItems(items) {
+            const { column, direction } = currentSort;
+
+            items.sort((a, b) => {
+                let valueA, valueB;
+
+                switch (column) {
+                    case 'item':
+                        valueA = a.item;
+                        valueB = b.item;
+                        return direction === 'asc' 
+                            ? valueA.localeCompare(valueB) 
+                            : valueB.localeCompare(valueA);
+                    case 'desc':
+                        valueA = a.desc_catmas;
+                        valueB = b.desc_catmas;
+                        return direction === 'asc' 
+                            ? valueA.localeCompare(valueB) 
+                            : valueB.localeCompare(valueA);
+                    case 'valorMensal':
+                        valueA = parseFloat(a.valor_un_mensal);
+                        valueB = parseFloat(b.valor_un_mensal);
+                        break;
+                    case 'qtdeMensal':
+                        valueA = selectedItems.get(a.item)?.quantidade_mensal || a.qtde_minima || 1;
+                        valueB = selectedItems.get(b.item)?.quantidade_mensal || b.qtde_minima || 1;
+                        break;
+                    case 'qtdeTotal':
+                        valueA = (selectedItems.get(a.item)?.quantidade_mensal || a.qtde_minima || 1) * 36;
+                        valueB = (selectedItems.get(b.item)?.quantidade_mensal || b.qtde_minima || 1) * 36;
+                        break;
+                    case 'valorUnTotal':
+                        valueA = parseFloat(a.valor_un_mensal) * 36;
+                        valueB = parseFloat(b.valor_un_mensal) * 36;
+                        break;
+                    case 'valorTotal':
+                        valueA = (selectedItems.get(a.item)?.quantidade_mensal || a.qtde_minima || 1) * parseFloat(a.valor_un_mensal) * 36;
+                        valueB = (selectedItems.get(b.item)?.quantidade_mensal || b.qtde_minima || 1) * parseFloat(b.valor_un_mensal) * 36;
+                        break;
+                    default:
+                        return 0;
+                }
+
+                return direction === 'asc' ? valueA - valueB : valueB - valueA;
+            });
+        }
+
+        // Renderiza a tabela
         function renderTable(items) {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
             items.forEach(item => {
+                const itemSelecionado = selectedItems.get(item.item) || {};
+                const quantidadeMensal = itemSelecionado.quantidade_mensal || item.qtde_minima || 1;
+                const valorUnMensal = parseFloat(item.valor_un_mensal);
+                const quantidadeTotal = quantidadeMensal * 36;
+                const valorUnTotal = valorUnMensal * 36;
+                const valorTotal = quantidadeMensal * valorUnMensal * 36;
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><input type="checkbox" class="item-checkbox" data-id="${item.item}"></td>
+                    <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" 
+                        data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
+                        data-min="${item.qtde_minima || 1}" ${selectedItems.has(item.item) ? "checked" : ""}></td>
                     <td>${item.item}</td>
                     <td>${item.desc_catmas}</td>
-                    <td>R$ ${item.valor_un_mensal.toFixed(2)}</td>
-                    <td>${item.qtde_mensal}</td>
-                    <td>${item.qtde_total}</td>
-                    <td>R$ ${item.valor_un_total.toFixed(2)}</td>
-                    <td>R$ ${item.valor_total.toFixed(2)}</td>
+                    <td>R$ ${formatarNumero(valorUnMensal)}</td>
+                    <td><input type="number" class="quantidade-input" data-id="${item.item}" 
+                        value="${quantidadeMensal}" min="${item.qtde_minima || 1}" step="1"></td>
+                    <td class="quantidade-total" data-id="${item.item}">${quantidadeTotal}</td>
+                    <td class="valor-un-total" data-id="${item.item}">R$ ${formatarNumero(valorUnTotal)}</td>
+                    <td class="valor-total" data-id="${item.item}">R$ ${formatarNumero(valorTotal)}</td>
                 `;
                 tbody.appendChild(tr);
             });
+            addEventListeners();
+            updateSortIndicators();
         }
 
-        document.querySelectorAll('.sortable').forEach(header => {
-            header.addEventListener('click', function () {
-                const column = this.dataset.column;
-                if (sortColumn === column) {
-                    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-                } else {
-                    sortColumn = column;
-                    sortOrder = 'asc';
-                }
-                fetchItems();
-            });
-        });
+        // Atualiza dinamicamente uma linha da tabela
+        function updateTableRow(id, quantidadeMensal, valorUnMensal) {
+            const quantidadeTotal = quantidadeMensal * 36;
+            const valorUnTotal = valorUnMensal * 36;
+            const valorTotal = quantidadeMensal * valorUnMensal * 36;
 
-        document.getElementById('searchInput').addEventListener('input', fetchItems);
+            document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
+            document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorUnTotal)}`;
+            document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorTotal)}`;
+        }
+
+        // Atualiza os indicadores visuais de ordenação
+        function updateSortIndicators() {
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.innerHTML = th.innerHTML.replace(/ (↑|↓)$/, ''); // Remove indicadores anteriores
+                if (th.dataset.sort === currentSort.column) {
+                    th.innerHTML += currentSort.direction === 'asc' ? ' ↑' : ' ↓';
+                }
+            });
+        }
+
+        // Adiciona os eventos
+        function addEventListeners() {
+            document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    const id = this.dataset.id;
+                    const desc = this.dataset.desc;
+                    const valor = parseFloat(this.dataset.valor);
+                    const qtdeMinima = parseInt(this.dataset.min) || 1;
+                    const quantidadeMensal = parseInt(document.querySelector(`.quantidade-input[data-id="${id}"]`).value) || qtdeMinima;
+
+                    if (this.checked) {
+                        selectedItems.set(id, { desc, valor, quantidade_mensal: quantidadeMensal });
+                    } else {
+                        selectedItems.delete(id);
+                    }
+                    updateSelectedItems();
+                });
+            });
+
+            document.querySelectorAll('.quantidade-input').forEach(input => {
+                input.addEventListener('input', function () {
+                    const id = this.dataset.id;
+                    let quantidadeMensal = parseInt(this.value) || 1;
+                    const minValue = parseInt(this.min) || 1;
+                    const valorUnMensal = parseFloat(this.parentElement.parentElement.querySelector('.item-checkbox').dataset.valor);
+
+                    if (quantidadeMensal < minValue) {
+                        this.value = minValue;
+                        quantidadeMensal = minValue;
+                    }
+
+                    updateTableRow(id, quantidadeMensal, valorUnMensal);
+
+                    if (selectedItems.has(id)) {
+                        selectedItems.get(id).quantidade_mensal = quantidadeMensal;
+                        updateSelectedItems();
+                    }
+                });
+            });
+
+            // Evento de clique nos cabeçalhos para ordenação
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                if (th.dataset.sort !== 'checkbox') { // Ignora a coluna de checkbox
+                    th.style.cursor = 'pointer';
+                    th.addEventListener('click', () => {
+                        const column = th.dataset.sort;
+                        if (currentSort.column === column) {
+                            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            currentSort.column = column;
+                            currentSort.direction = 'asc';
+                        }
+                        fetchItems(); // Reordena os dados
+                    });
+                }
+            });
+        }
+
+        // Atualiza a lista de itens selecionados
+        function updateSelectedItems() {
+            const selectedList = document.getElementById('selectedList');
+            selectedList.innerHTML = '';
+
+            selectedItems.forEach((data, id) => {
+                const quantidadeTotal = data.quantidade_mensal * 36;
+                const valorUnTotal = data.valor * 36;
+                const valorTotal = data.quantidade_mensal * data.valor * 36;
+
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <strong>Item:</strong> ${id} - ${data.desc} <br>
+                    <strong>Qtde Mensal:</strong> ${data.quantidade_mensal} <br>
+                    <strong>Qtde Total:</strong> ${quantidadeTotal} <br>
+                    <strong>Valor Unitário Total:</strong> R$ ${formatarNumero(valorUnTotal)} <br>
+                    <strong>Valor Total:</strong> R$ ${formatarNumero(valorTotal)}<br><br>
+                `;
+                selectedList.appendChild(li);
+            });
+        }
+
+        // Evento de busca com debounce
+        document.getElementById('searchInput').addEventListener('input', debounce(fetchItems, 300));
+
+        // Evento dos filtros de lote
         document.querySelectorAll('.filter-btn').forEach(button => {
             button.addEventListener('click', function () {
                 document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -127,6 +281,8 @@
                 fetchItems();
             });
         });
+
+        // Carrega os itens iniciais
         fetchItems();
     </script>
 </body>
