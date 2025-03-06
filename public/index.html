@@ -220,8 +220,10 @@
                         quantidadeMensal = minValue;
                     }
 
+                    // Atualiza a tabela independentemente de o item estar selecionado
                     updateTableRow(id, quantidadeMensal, valorUnMensal);
 
+                    // Atualiza selectedItems se o item estiver selecionado
                     if (selectedItems.has(id)) {
                         selectedItems.get(id).quantidade_mensal = quantidadeMensal;
                         updateSelectedItems();
