@@ -65,7 +65,7 @@
                 const search = document.getElementById("searchInput").value || "";
                 const lote = currentLote;
 
-                const response = await fetch(`/api/supabase?search=${encodeURIComponent(search)}&lote=${lote}`);
+                const response = await fetch(`var/task/api/supabase?search=${encodeURIComponent(search)}&lote=${lote}`);
                 const data = await response.json();
 
                 if (!response.ok) {
