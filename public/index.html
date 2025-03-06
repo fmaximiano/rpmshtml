@@ -90,42 +90,42 @@
 
         // Renderiza a tabela
         function renderTable(items) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
 
-            // Ordena os itens pela coluna "item"
-            items.sort((a, b) => {
-                return a.item - b.item; 
-            });
+        // Ordena os itens pela coluna "item"
+        items.sort((a, b) => a.item - b.item);
 
-            items.forEach(item => {
-                const itemSelecionado = selectedItems.get(item.item) || {};
-                const quantidadeMensal = itemSelecionado.quantidade_mensal || item.qtde_minima || 1;
-                const valorUnMensal = parseFloat(item.valor_un_mensal);
-                const quantidadeTotal = quantidadeMensal * 36;
-                const valorUnTotal = valorUnMensal * 36;
-                const valorTotal = quantidadeMensal * valorUnMensal * 36;
+        items.forEach(item => {
+            const itemSelecionado = selectedItems.get(item.item) || {};
+            const quantidadeMensal = itemSelecionado.quantidade_mensal || item.qtde_minima || 1;
+            const valorUnMensal = parseFloat(item.valor_un_mensal);
+            const quantidadeTotal = quantidadeMensal * 36;
+            const valorUnTotal = valorUnMensal * 36;
+            const valorTotal = quantidadeMensal * valorUnMensal * 36;
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" 
-                        data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
-                        data-min="${item.qtde_minima || 1}" ${selectedItems.has(item.item) ? "checked" : ""}></td>
-                    <td>${item.item}</td>
-                    <td>${item.cod_catmas || '-'}</td>
-                    <td>${item.sku || '-'}</td>
-                    <td>${item.desc_catmas}</td>
-                    <td>R$ ${formatarNumero(valorUnMensal)}</td>
-                    <td><input type="number" class="quantidade-input" data-id="${item.item}" 
-                        value="${quantidadeMensal}" min="${item.qtde_minima || 1}" step="1">${selectedItems.has(item.item) ? "" : "disabled"}></td>
-                    <td class="quantidade-total" data-id="${item.item}">${quantidadeTotal}</td>
-                    <td class="valor-un-total" data-id="${item.item}">R$ ${formatarNumero(valorUnTotal)}</td>
-                    <td class="valor-total" data-id="${item.item}">R$ ${formatarNumero(valorTotal)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-            addEventListeners();
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" 
+                    data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
+                    data-min="${item.qtde_minima || 1}" ${selectedItems.has(item.item) ? "checked" : ""}></td>
+                <td>${item.item}</td>
+                <td>${item.desc_catmas}</td>
+                <td>${item.cod_catmas || '-'}</td>
+                <td>${item.sku || '-'}</td>
+                <td>R$ ${formatarNumero(valorUnMensal)}</td>
+                <td><input type="number" class="quantidade-input" data-id="${item.item}" 
+                    value="${quantidadeMensal}" min="${item.qtde_minima || 1}" step="1"
+                    ${selectedItems.has(item.item) ? "" : "disabled"}></td>
+                <td class="quantidade-total" data-id="${item.item}">${quantidadeTotal}</td>
+                <td class="valor-un-total" data-id="${item.item}">R$ ${formatarNumero(valorUnTotal)}</td>
+                <td class="valor-total" data-id="${item.item}">R$ ${formatarNumero(valorTotal)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        addEventListeners();
         }
+
 
         // Atualiza dinamicamente uma linha da tabela
         function updateTableRow(id, quantidadeMensal, valorUnMensal) {
@@ -140,50 +140,51 @@
 
         // Adiciona os eventos
         function addEventListeners() {
-            document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', function () {
-                    const id = this.dataset.id;
-                    const desc = this.dataset.desc;
-                    const valor = parseFloat(this.dataset.valor);
-                    const qtdeMinima = parseInt(this.dataset.min) || 1;
-                    const quantidadeMensal = parseInt(document.querySelector(`.quantidade-input[data-id="${id}"]`).value) || qtdeMinima;
+        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const id = this.dataset.id;
+                const desc = this.dataset.desc;
+                const valor = parseFloat(this.dataset.valor);
+                const qtdeMinima = parseInt(this.dataset.min) || 1;
+                const quantidadeInput = document.querySelector(`.quantidade-input[data-id="${id}"]`);
 
-                    if (this.checked) {
-                        selectedItems.set(id, { desc, valor, quantidade_mensal: quantidadeMensal });
-                        quantidadeInput.disabled = false;
-                    } else {
-                        selectedItems.delete(id);
-                        quantidadeInput.disabled = true; 
-                        quantidadeInput.value = qtdeMinima;
-                        updateTableRow(id, qtdeMinima, valor);
-                    }
+                if (this.checked) {
+                    selectedItems.set(id, { desc, valor, quantidade_mensal: qtdeMinima });
+                    quantidadeInput.disabled = false; // Habilita a edição da quantidade
+                } else {
+                    selectedItems.delete(id);
+                    quantidadeInput.disabled = true; // Desativa a edição da quantidade
+                    quantidadeInput.value = qtdeMinima; // Reseta para o valor mínimo
+                    updateTableRow(id, qtdeMinima, valor);
+                }
+                updateSelectedItems();
+            });
+        });
+
+        document.querySelectorAll('.quantidade-input').forEach(input => {
+            input.addEventListener('input', function () {
+                const id = this.dataset.id;
+                let quantidadeMensal = parseInt(this.value) || 1;
+                const minValue = parseInt(this.min) || 1;
+                const valorUnMensal = parseFloat(this.parentElement.parentElement.querySelector('.item-checkbox').dataset.valor);
+
+                if (quantidadeMensal < minValue) {
+                    this.value = minValue;
+                    quantidadeMensal = minValue;
+                }
+
+                // Atualiza a tabela independentemente de o item estar selecionado
+                updateTableRow(id, quantidadeMensal, valorUnMensal);
+
+                // Atualiza selectedItems se o item estiver selecionado
+                if (selectedItems.has(id)) {
+                    selectedItems.get(id).quantidade_mensal = quantidadeMensal;
                     updateSelectedItems();
-                });
+                }
             });
-
-            document.querySelectorAll('.quantidade-input').forEach(input => {
-                input.addEventListener('input', function () {
-                    const id = this.dataset.id;
-                    let quantidadeMensal = parseInt(this.value) || 1;
-                    const minValue = parseInt(this.min) || 1;
-                    const valorUnMensal = parseFloat(this.parentElement.parentElement.querySelector('.item-checkbox').dataset.valor);
-
-                    if (quantidadeMensal < minValue) {
-                        this.value = minValue;
-                        quantidadeMensal = minValue;
-                    }
-
-                    // Atualiza a tabela independentemente de o item estar selecionado
-                    updateTableRow(id, quantidadeMensal, valorUnMensal);
-
-                    // Atualiza selectedItems se o item estiver selecionado
-                    if (selectedItems.has(id)) {
-                        selectedItems.get(id).quantidade_mensal = quantidadeMensal;
-                        updateSelectedItems();
-                    }
-                });
-            });
+        });
         }
+
 
         // Atualiza a lista de itens selecionados
         function updateSelectedItems() {
