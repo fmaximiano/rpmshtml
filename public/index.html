@@ -11,7 +11,7 @@
         <input 
             type="text" 
             id="searchInput" 
-            placeholder="Buscar itens..." 
+            placeholder="Buscar itens..."
             aria-label="Buscar itens por descrição"
         />
         <div class="filter-container">
@@ -26,14 +26,14 @@
             <table id="itemsTable">
                 <thead>
                     <tr>
-                        <th data-sort="checkbox"></th>
-                        <th data-sort="item">Item</th>
-                        <th data-sort="desc">Descrição CATMAS</th>
-                        <th data-sort="valorMensal">Valor Unitário Mensal</th>
-                        <th data-sort="qtdeMensal">Qtde Mensal</th>
-                        <th data-sort="qtdeTotal">Qtde Total</th>
-                        <th data-sort="valorUnTotal">Valor Unitário Total</th>
-                        <th data-sort="valorTotal">Valor Total</th>
+                        <th></th>
+                        <th>Item</th>
+                        <th>Descrição CATMAS</th>
+                        <th>Valor Unitário Mensal</th>
+                        <th>Qtde Mensal</th>
+                        <th>Qtde Total</th>
+                        <th>Valor Unitário Total</th>
+                        <th>Valor Total</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -46,9 +46,9 @@
     </div>
 
     <script>
+
         let selectedItems = new Map();
         let currentLote = 1;
-        let currentSort = { column: 'item', direction: 'asc' }; // Ordenação padrão por "item"
 
         // Função de debounce
         function debounce(func, wait) {
@@ -65,7 +65,7 @@
                 const search = document.getElementById("searchInput").value || "";
                 const lote = currentLote;
 
-                const response = await fetch(`/api/supabase?search=${encodeURIComponent(search)}&lote=${lote}`);
+                const response = await fetch(`api/supabase?search=${encodeURIComponent(search)}&lote=${lote}`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -73,7 +73,6 @@
                 }
 
                 console.log("Dados recebidos:", data);
-                sortItems(data); // Ordena os itens antes de renderizar
                 renderTable(data);
             } catch (error) {
                 console.error("Erro ao buscar dados da API:", error);
@@ -85,54 +84,6 @@
         // Formata números no padrão brasileiro
         function formatarNumero(numero) {
             return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        // Função para ordenar os itens
-        function sortItems(items) {
-            const { column, direction } = currentSort;
-
-            items.sort((a, b) => {
-                let valueA, valueB;
-
-                switch (column) {
-                    case 'item':
-                        valueA = a.item;
-                        valueB = b.item;
-                        return direction === 'asc' 
-                            ? valueA.localeCompare(valueB) 
-                            : valueB.localeCompare(valueA);
-                    case 'desc':
-                        valueA = a.desc_catmas;
-                        valueB = b.desc_catmas;
-                        return direction === 'asc' 
-                            ? valueA.localeCompare(valueB) 
-                            : valueB.localeCompare(valueA);
-                    case 'valorMensal':
-                        valueA = parseFloat(a.valor_un_mensal);
-                        valueB = parseFloat(b.valor_un_mensal);
-                        break;
-                    case 'qtdeMensal':
-                        valueA = selectedItems.get(a.item)?.quantidade_mensal || a.qtde_minima || 1;
-                        valueB = selectedItems.get(b.item)?.quantidade_mensal || b.qtde_minima || 1;
-                        break;
-                    case 'qtdeTotal':
-                        valueA = (selectedItems.get(a.item)?.quantidade_mensal || a.qtde_minima || 1) * 36;
-                        valueB = (selectedItems.get(b.item)?.quantidade_mensal || b.qtde_minima || 1) * 36;
-                        break;
-                    case 'valorUnTotal':
-                        valueA = parseFloat(a.valor_un_mensal) * 36;
-                        valueB = parseFloat(b.valor_un_mensal) * 36;
-                        break;
-                    case 'valorTotal':
-                        valueA = (selectedItems.get(a.item)?.quantidade_mensal || a.qtde_minima || 1) * parseFloat(a.valor_un_mensal) * 36;
-                        valueB = (selectedItems.get(b.item)?.quantidade_mensal || b.qtde_minima || 1) * parseFloat(b.valor_un_mensal) * 36;
-                        break;
-                    default:
-                        return 0;
-                }
-
-                return direction === 'asc' ? valueA - valueB : valueB - valueA;
-            });
         }
 
         // Renderiza a tabela
@@ -165,7 +116,6 @@
                 tbody.appendChild(tr);
             });
             addEventListeners();
-            updateSortIndicators();
         }
 
         // Atualiza dinamicamente uma linha da tabela
@@ -177,16 +127,6 @@
             document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
             document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorUnTotal)}`;
             document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorTotal)}`;
-        }
-
-        // Atualiza os indicadores visuais de ordenação
-        function updateSortIndicators() {
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                th.innerHTML = th.innerHTML.replace(/ (↑|↓)$/, ''); // Remove indicadores anteriores
-                if (th.dataset.sort === currentSort.column) {
-                    th.innerHTML += currentSort.direction === 'asc' ? ' ↑' : ' ↓';
-                }
-            });
         }
 
         // Adiciona os eventos
@@ -229,23 +169,6 @@
                         updateSelectedItems();
                     }
                 });
-            });
-
-            // Evento de clique nos cabeçalhos para ordenação
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                if (th.dataset.sort !== 'checkbox') { // Ignora a coluna de checkbox
-                    th.style.cursor = 'pointer';
-                    th.addEventListener('click', () => {
-                        const column = th.dataset.sort;
-                        if (currentSort.column === column) {
-                            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-                        } else {
-                            currentSort.column = column;
-                            currentSort.direction = 'asc';
-                        }
-                        fetchItems(); // Reordena os dados
-                    });
-                }
             });
         }
 
