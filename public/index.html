@@ -117,7 +117,7 @@
                     <td>${item.desc_catmas}</td>
                     <td>R$ ${formatarNumero(valorUnMensal)}</td>
                     <td><input type="number" class="quantidade-input" data-id="${item.item}" 
-                        value="${quantidadeMensal}" min="${item.qtde_minima || 1}" step="1"></td>
+                        value="${quantidadeMensal}" min="${item.qtde_minima || 1}" step="1">${selectedItems.has(item.item) ? "" : "disabled"}></td>
                     <td class="quantidade-total" data-id="${item.item}">${quantidadeTotal}</td>
                     <td class="valor-un-total" data-id="${item.item}">R$ ${formatarNumero(valorUnTotal)}</td>
                     <td class="valor-total" data-id="${item.item}">R$ ${formatarNumero(valorTotal)}</td>
@@ -150,8 +150,12 @@
 
                     if (this.checked) {
                         selectedItems.set(id, { desc, valor, quantidade_mensal: quantidadeMensal });
+                        quantidadeInput.disabled = false;
                     } else {
                         selectedItems.delete(id);
+                        quantidadeInput.disabled = true; 
+                        quantidadeInput.value = qtdeMinima;
+                        updateTableRow(id, qtdeMinima, valor);
                     }
                     updateSelectedItems();
                 });
