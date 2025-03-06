@@ -46,6 +46,11 @@
     </div>
 
     <script>
+
+        console.log("SUPABASE_URL:", process.env.SUPABASE_URL ? "Definida" : "Não definida");
+        console.log("SUPABASE_KEY:", process.env.SUPABASE_KEY ? "Definida" : "Não definida");
+
+
         let selectedItems = new Map();
         let currentLote = 1;
 
