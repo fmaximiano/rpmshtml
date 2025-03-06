@@ -99,8 +99,8 @@
             const itemSelecionado = selectedItems.get(item.item);
             const valorUnMensal = parseFloat(item.valor_un_mensal);
             const qtdeMinima = item.qtde_minima || 1;
-            const isChecked = itemSelecionado !== undefined;
-            const quantidadeMensal = isChecked ? itemSelecionado.quantidade_mensal : 0; // Se estiver selecionado, usa a quantidade salva; senão, 0
+            const isChecked = itemSelecionado !== undefined; // Verifica se o item foi selecionado anteriormente
+            const quantidadeMensal = isChecked ? itemSelecionado.quantidade_mensal : 0; // Usa o valor salvo, senão começa em 0
 
             const quantidadeTotal = quantidadeMensal * 36;
             const valorUnTotal = valorUnMensal * 36;
@@ -112,9 +112,9 @@
                     data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
                     data-min="${qtdeMinima}" ${isChecked ? "checked" : ""}></td>
                 <td>${item.item}</td>
-                <td>${item.desc_catmas}</td>
                 <td>${item.cod_catmas || '-'}</td>
                 <td>${item.sku || '-'}</td>
+                <td>${item.desc_catmas}</td>                
                 <td>R$ ${formatarNumero(valorUnMensal)}</td>
                 <td><input type="number" class="quantidade-input" data-id="${item.item}" 
                     value="${quantidadeMensal}" min="${qtdeMinima}" step="1"
@@ -125,8 +125,10 @@
             `;
             tbody.appendChild(tr);
         });
-        addEventListeners();
+
+        addEventListeners(); // Reaplica os eventos
         }
+
 
 
 
@@ -155,13 +157,13 @@
 
                 if (this.checked) {
                     selectedItems.set(id, { desc, valor, quantidade_mensal: qtdeMinima });
-                    quantidadeInput.disabled = false; // Habilita edição
+                    quantidadeInput.disabled = false;
                     quantidadeInput.value = qtdeMinima; // Define o valor mínimo ao selecionar
                     updateTableRow(id, qtdeMinima, valor);
                 } else {
                     selectedItems.delete(id);
-                    quantidadeInput.disabled = true; // Desativa edição
-                    quantidadeInput.value = 0; // Volta para 0
+                    quantidadeInput.disabled = true;
+                    quantidadeInput.value = 0;
                     updateTableRow(id, 0, valor);
                 }
                 updateSelectedItems();
@@ -171,7 +173,7 @@
         document.querySelectorAll('.quantidade-input').forEach(input => {
             input.addEventListener('focus', function () {
                 if (parseInt(this.value) === 0) {
-                    this.value = this.min; // Se estiver 0, assume o mínimo
+                    this.value = this.min;
                 }
             });
 
