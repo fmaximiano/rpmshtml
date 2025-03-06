@@ -99,7 +99,7 @@
             const itemSelecionado = selectedItems.get(item.item);
             const valorUnMensal = parseFloat(item.valor_un_mensal);
             const qtdeMinima = item.qtde_minima || 1;
-            const isChecked = selectedItems.has(item.item); // Verifica se o item está salvo na seleção
+            const isChecked = selectedItems.has(item.item); // Verifica se o item foi salvo na seleção
             const quantidadeMensal = isChecked ? itemSelecionado.quantidade_mensal : 0; // Recupera a quantidade salva ou inicia em 0
 
             const quantidadeTotal = quantidadeMensal * 36;
@@ -126,16 +126,21 @@
             tbody.appendChild(tr);
         });
 
-        // 🔥 Atualiza checkboxes depois que os elementos foram adicionados ao DOM
+        // 🔥 Atualiza checkboxes e quantidades depois que os elementos foram adicionados ao DOM
         document.querySelectorAll('.item-checkbox').forEach(checkbox => {
             const id = checkbox.dataset.id;
+            const quantidadeInput = document.querySelector(`.quantidade-input[data-id="${id}"]`);
+
             if (selectedItems.has(id)) {
                 checkbox.checked = true; // Marca os checkboxes corretamente
+                quantidadeInput.disabled = false; // Habilita o campo de quantidade
+                quantidadeInput.value = selectedItems.get(id).quantidade_mensal; // Restaura a quantidade correta
             }
         });
 
         addEventListeners(); // Reaplica os eventos
         }
+
 
 
 
