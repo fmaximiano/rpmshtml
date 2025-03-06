@@ -111,9 +111,9 @@
                     data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
                     data-min="${qtdeMinima}" ${selectedItems.has(item.item) ? "checked" : ""}></td>
                 <td>${item.item}</td>
-                <td>${item.desc_catmas}</td>
                 <td>${item.cod_catmas || '-'}</td>
                 <td>${item.sku || '-'}</td>
+                <td>${item.desc_catmas}</td>                
                 <td>R$ ${formatarNumero(valorUnMensal)}</td>
                 <td><input type="number" class="quantidade-input" data-id="${item.item}" 
                     value="${quantidadeMensal}" min="${qtdeMinima}" step="1" disabled></td>
