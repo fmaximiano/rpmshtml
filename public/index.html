@@ -98,8 +98,9 @@
 
         items.forEach(item => {
             const itemSelecionado = selectedItems.get(item.item) || {};
-            const quantidadeMensal = itemSelecionado.quantidade_mensal || item.qtde_minima || 1;
             const valorUnMensal = parseFloat(item.valor_un_mensal);
+            const qtdeMinima = item.qtde_minima || 1;
+            const quantidadeMensal = selectedItems.has(item.item) ? itemSelecionado.quantidade_mensal : 0;
             const quantidadeTotal = quantidadeMensal * 36;
             const valorUnTotal = valorUnMensal * 36;
             const valorTotal = quantidadeMensal * valorUnMensal * 36;
@@ -108,15 +109,14 @@
             tr.innerHTML = `
                 <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" 
                     data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
-                    data-min="${item.qtde_minima || 1}" ${selectedItems.has(item.item) ? "checked" : ""}></td>
+                    data-min="${qtdeMinima}" ${selectedItems.has(item.item) ? "checked" : ""}></td>
                 <td>${item.item}</td>
+                <td>${item.desc_catmas}</td>
                 <td>${item.cod_catmas || '-'}</td>
                 <td>${item.sku || '-'}</td>
-                <td>${item.desc_catmas}</td>
                 <td>R$ ${formatarNumero(valorUnMensal)}</td>
                 <td><input type="number" class="quantidade-input" data-id="${item.item}" 
-                    value="${quantidadeMensal}" min="${item.qtde_minima || 1}" step="1"
-                    ${selectedItems.has(item.item) ? "" : "disabled"}></td>
+                    value="${quantidadeMensal}" min="${qtdeMinima}" step="1" disabled></td>
                 <td class="quantidade-total" data-id="${item.item}">${quantidadeTotal}</td>
                 <td class="valor-un-total" data-id="${item.item}">R$ ${formatarNumero(valorUnTotal)}</td>
                 <td class="valor-total" data-id="${item.item}">R$ ${formatarNumero(valorTotal)}</td>
@@ -125,6 +125,7 @@
         });
         addEventListeners();
         }
+
 
 
         // Atualiza dinamicamente uma linha da tabela
@@ -150,21 +151,29 @@
 
                 if (this.checked) {
                     selectedItems.set(id, { desc, valor, quantidade_mensal: qtdeMinima });
-                    quantidadeInput.disabled = false; // Habilita a edição da quantidade
+                    quantidadeInput.disabled = false; // Habilita edição
+                    quantidadeInput.value = qtdeMinima; // Define valor mínimo
+                    updateTableRow(id, qtdeMinima, valor);
                 } else {
                     selectedItems.delete(id);
-                    quantidadeInput.disabled = true; // Desativa a edição da quantidade
-                    quantidadeInput.value = qtdeMinima; // Reseta para o valor mínimo
-                    updateTableRow(id, qtdeMinima, valor);
+                    quantidadeInput.disabled = true; // Desativa edição
+                    quantidadeInput.value = 0; // Reseta para zero
+                    updateTableRow(id, 0, valor);
                 }
                 updateSelectedItems();
             });
         });
 
         document.querySelectorAll('.quantidade-input').forEach(input => {
+            input.addEventListener('focus', function () {
+                if (this.value == 0) {
+                    this.value = this.min; // Se for 0, define o mínimo ao focar
+                }
+            });
+
             input.addEventListener('input', function () {
                 const id = this.dataset.id;
-                let quantidadeMensal = parseInt(this.value) || 1;
+                let quantidadeMensal = parseInt(this.value) || 0;
                 const minValue = parseInt(this.min) || 1;
                 const valorUnMensal = parseFloat(this.parentElement.parentElement.querySelector('.item-checkbox').dataset.valor);
 
@@ -184,6 +193,7 @@
             });
         });
         }
+
 
 
         // Atualiza a lista de itens selecionados
