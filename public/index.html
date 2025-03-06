@@ -99,8 +99,8 @@
             const itemSelecionado = selectedItems.get(item.item);
             const valorUnMensal = parseFloat(item.valor_un_mensal);
             const qtdeMinima = item.qtde_minima || 1;
-            const isChecked = itemSelecionado !== undefined; // Verifica se o item foi selecionado anteriormente
-            const quantidadeMensal = isChecked ? itemSelecionado.quantidade_mensal : 0; // Usa o valor salvo, senão começa em 0
+            const isChecked = selectedItems.has(item.item); // Verifica se o item está salvo na seleção
+            const quantidadeMensal = isChecked ? itemSelecionado.quantidade_mensal : 0; // Recupera a quantidade salva ou inicia em 0
 
             const quantidadeTotal = quantidadeMensal * 36;
             const valorUnTotal = valorUnMensal * 36;
@@ -110,11 +110,11 @@
             tr.innerHTML = `
                 <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" 
                     data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
-                    data-min="${qtdeMinima}" ${isChecked ? "checked" : ""}></td>
+                    data-min="${qtdeMinima}"></td>
                 <td>${item.item}</td>
+                <td>${item.desc_catmas}</td>
                 <td>${item.cod_catmas || '-'}</td>
                 <td>${item.sku || '-'}</td>
-                <td>${item.desc_catmas}</td>                
                 <td>R$ ${formatarNumero(valorUnMensal)}</td>
                 <td><input type="number" class="quantidade-input" data-id="${item.item}" 
                     value="${quantidadeMensal}" min="${qtdeMinima}" step="1"
@@ -126,8 +126,17 @@
             tbody.appendChild(tr);
         });
 
+        // 🔥 Atualiza checkboxes depois que os elementos foram adicionados ao DOM
+        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+            const id = checkbox.dataset.id;
+            if (selectedItems.has(id)) {
+                checkbox.checked = true; // Marca os checkboxes corretamente
+            }
+        });
+
         addEventListeners(); // Reaplica os eventos
         }
+
 
 
 
