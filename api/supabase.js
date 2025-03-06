@@ -1,6 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
 export default async function handler(req, res) {
+
+    console.log("SUPABASE_URL:", process.env.SUPABASE_URL ? "Definida" : "Não definida");
+    console.log("SUPABASE_KEY:", process.env.SUPABASE_KEY ? "Definida" : "Não definida");
+
+
     const SUPABASE_URL = process.env.SUPABASE_URL;
     const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
