@@ -5,8 +5,8 @@ body, html {
 }
 
 .quantidade-input {
-    width: 70px; /* Ajuste este valor conforme necessário */
-    padding: 5px;
+    width: 50px; /* Ajuste este valor conforme necessário */
+    padding: 1px;
     text-align: center;
 }
 
@@ -14,10 +14,9 @@ body, html {
 .search-container {
     width:98%;
     display:flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: center;
     padding: 10px;   
-    margin: 20px;
     gap: 20px;
 }
 
@@ -26,10 +25,10 @@ body, html {
 #searchInput {
     flex-grow: 1;
     max-width: 400px; /* Limita para não ficar muito largo */
-    padding: 10px;
-    font-size: 16px;
+    padding: 8px;
+    font-size: 14px;
     border: 1px solid #000000;
-    border-radius: 6px;
+    border-radius: 5px;
     outline: none;
     transition: all 0.3s ease-in-out;
 }
@@ -48,8 +47,8 @@ body, html {
     flex-direction: row; /* Mantém os blocos lado a lado */
     justify-content: space-between; /* Garante espaçamento entre as colunas */
     align-items: flex-start; /* Alinha ao topo */
-    gap: 20px; /* Espaço entre os blocos */
-    padding: 20px;
+    gap: 10px; /* Espaço entre os blocos */
+    padding: 10px;
     width: 100%;
     box-sizing: border-box;
     overflow-x: hidden;
@@ -62,13 +61,13 @@ body, html {
 .selected-container {
     flex: 1; /* Ocupa uma parte do espaço disponível */
     width: auto; /* Evita que fique muito pequeno */
-    max-height: 60vh; /* Define uma altura máxima */
+    max-height: 70vh; /* Define uma altura máxima */
     overflow-y: auto; /* Permite rolagem se necessário */
     overflow-x: auto;
     border: 1px solid #ccc;
     padding-left: 10px;
     background-color: #f9f9f9;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 /* Bloco da tabela */
@@ -76,11 +75,11 @@ body, html {
     flex: 2; /* Ocupa mais espaço que a lista de selecionados */
     min-width: 500px; /* Evita que a tabela fique comprimida */
     max-width: 65%;
-    max-height: 60vh;
+    max-height: 70vh;
     overflow-x: auto;
     overflow-y: auto; /* Permite rolagem apenas na área da tabela */
     border: 1px solid #ccc; /* Opcional, para destacar o contêiner */
-    font-size: 14px;
+    font-size: 12px;
 }
 
 #itemsTable thead {
@@ -96,35 +95,39 @@ body, html {
 #itemsTable {
     width: 100%;
     border-collapse: collapse;
+    font-size: 12px;
+    
 }
 
 #itemsTable th, #itemsTable td {
     padding: 8px;
     border: 1px solid #ccc;
-    text-align: left;
+    text-align: justify;
 }
+
 
 #itemsTable th {
     background-color: #f1f1f1;
 }
+
+#itemsTable th:nth-child(10) { width: 12%; } /* valor total */
 
 
 .filter-container {
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 10px;
     margin-right: 50%;
 }
 
 .filter-btn {
-    padding: 10px 20px;
+    padding: 8px 10px;
     border: none;
     cursor: pointer;
     background-color: #ccc;
     border-radius: 5px;
     font-weight: bold;
-    transition: background-color 0.3s;
+    transition: background-color 0.5s;
 }
 
 .filter-btn.active {
@@ -161,6 +164,11 @@ body, html {
     border: 1px solid #ccc;
     border-radius: 4px;
     min-width: 150px; /* Garante um tamanho mínimo */
+}
+
+.user-form label {
+    font-weight:bold;
+    font-size: 14px;
 }
 
 .user-form button {
