@@ -1,2 +1,4 @@
 static/js/config.js
 node_modules/
+.env.local
+.vercel

@@ -41,11 +41,32 @@
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
+        
         <div class="selected-container">
             <h3>Itens Selecionados</h3>
             <ul id="selectedList"></ul>
+     
+
+    </div>
+
+    </div>
+
+    <div class="form-container">
+        <div class="user-form">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" placeholder="Digite seu nome" required>
+        
+            <label for="email">Email:</label>
+            <input type="email" id="email" placeholder="Digite seu email" required>
+        
+            <label for="orgao">Órgão:</label>
+            <input type="text" id="orgao" placeholder="Digite o órgão" required>
+        
+            <button id="enviarBtn">Enviar</button>
         </div>
     </div>
+
+    
 
     <script>
 
@@ -61,14 +82,19 @@
             };
         }
 
+        const API_URL = window.location.hostname === "localhost"
+        ? "http://localhost:3000/api/supabase"
+        : "/api/supabase";
+
         // Busca os itens na API
         async function fetchItems() {
             try {
                 const search = document.getElementById("searchInput").value || "";
                 const lote = currentLote;
 
-                const response = await fetch(`api/supabase?search=${encodeURIComponent(search)}&lote=${lote}`);
+                const response = await fetch(`${API_URL}?search=${encodeURIComponent(search)}&lote=${lote}`);
                 const data = await response.json();
+
 
                 if (!response.ok) {
                     throw new Error(data.error || "Erro ao buscar dados");
@@ -249,6 +275,68 @@
                 currentLote = this.dataset.lote;
                 fetchItems();
             });
+        });
+
+        document.getElementById("enviarBtn").addEventListener("click", async function () {
+            const nome = document.getElementById("nome").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const orgao = document.getElementById("orgao").value.trim();
+
+            // Verifica se há itens selecionados
+            if (selectedItems.size === 0) {
+                alert("Nenhum item foi selecionado!");
+                return;
+            }
+
+            // Verifica se todos os campos estão preenchidos
+            if (!nome || !email || !orgao) {
+                alert("Por favor, preencha todos os campos antes de enviar.");
+                return;
+            }
+
+            // Monta o array de itens para enviar
+            const itensParaEnviar = Array.from(selectedItems.entries()).map(([id, item]) => ({
+                item: id,
+                cod_catmas: item.cod_catmas || "-", 
+                sku: item.sku || "-",
+                desc_catmas: item.desc,
+                valor_un_mensal: item.valor,
+                quantidade_mensal: item.quantidade_mensal,
+                quantidade_total: item.quantidade_mensal * 36,
+                valor_un_total: item.valor * 36,
+                valor_total: item.quantidade_mensal * item.valor * 36,
+                nome: nome,
+                email: email,
+                orgao: orgao
+            }));
+
+            try {
+                // Envia os dados para o backend (Supabase)
+                const response = await fetch("/api/supabase", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ itens: itensParaEnviar }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert("Itens enviados com sucesso!");
+                    selectedItems.clear(); // Limpa os itens selecionados
+                    updateSelectedItems(); // Atualiza a lista de selecionados na tela
+                    document.getElementById("nome").value = "";
+                    document.getElementById("email").value = "";
+                    document.getElementById("orgao").value = "";
+                    fetchItems(); // Atualiza a tabela para limpar os checkboxes
+                } else {
+                    alert("Erro ao enviar os dados: " + result.error);
+                }
+            } catch (error) {
+                console.error("Erro ao enviar os dados:", error);
+                alert("Erro ao enviar os dados. Tente novamente.");
+            }
         });
 
         // Carrega os itens iniciais

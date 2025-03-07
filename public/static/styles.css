@@ -14,7 +14,7 @@ body, html {
 .search-container {
     width:98%;
     display:flex;
-    justify-content: space-between;
+    justify-content: space-evenly;
     align-items: center;
     padding: 10px;   
     margin: 20px;
@@ -55,15 +55,18 @@ body, html {
     overflow-x: hidden;
 }
 
+
+
+
 /* Bloco da lista de itens selecionados */
 .selected-container {
     flex: 1; /* Ocupa uma parte do espaço disponível */
-    min-width: 200px; /* Evita que fique muito pequeno */
-    max-width: 30%; /* Garante que não fique muito grande */
-    max-height: 100vh; /* Define uma altura máxima */
+    width: auto; /* Evita que fique muito pequeno */
+    max-height: 60vh; /* Define uma altura máxima */
     overflow-y: auto; /* Permite rolagem se necessário */
+    overflow-x: auto;
     border: 1px solid #ccc;
-    padding: 10px;
+    padding-left: 10px;
     background-color: #f9f9f9;
     font-size: 14px;
 }
@@ -71,9 +74,9 @@ body, html {
 /* Bloco da tabela */
 .table-container {
     flex: 2; /* Ocupa mais espaço que a lista de selecionados */
-    min-width: 650px; /* Evita que a tabela fique comprimida */
-    max-width: 70%;
-    max-height: 80vh;
+    min-width: 500px; /* Evita que a tabela fique comprimida */
+    max-width: 65%;
+    max-height: 60vh;
     overflow-x: auto;
     overflow-y: auto; /* Permite rolagem apenas na área da tabela */
     border: 1px solid #ccc; /* Opcional, para destacar o contêiner */
@@ -127,4 +130,72 @@ body, html {
 .filter-btn.active {
     background-color: #007bff;
     color: white;
+}
+
+
+
+
+
+
+.form-container {
+    width: 100%; /* Ocupa toda a largura */
+    display: flex;
+    justify-content: center; /* Centraliza os campos */
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #ccc;
+    margin-top: 10px; /* Adiciona um espaço acima */
+}
+
+.user-form {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espaço entre os campos */
+    width: 100%;
+    padding: 0px 20px;
+}
+
+.user-form input {
+    flex: 1; /* Faz os inputs ocuparem o espaço disponível */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 150px; /* Garante um tamanho mínimo */
+}
+
+.user-form button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 100px;
+    margin: 0px 30px;
+}
+
+.user-form button:hover {
+    background-color: #0056b3;
+}
+
+
+
+
+
+
+
+
+
+
+.user-form label {
+    display: block;
+    font-size: 14px;
+}
+
+
+
+
+
+.user-form button:hover {
+    background-color: #0056b3;
 }
