@@ -35,13 +35,14 @@ export default async function handler(req, res) {
         }
     } else if (req.method === "POST") {
         try {
-            const { itens, nome, email, orgao } = req.body;
+            const { itens, nome, email, telefone, orgao } = req.body;
 
             if (!itens || !Array.isArray(itens) || itens.length === 0) {
                 return res.status(400).json({ error: "Nenhum item recebido para salvar." });
             }
             if (!nome) return res.status(400).json({ error: "O campo 'nome' é obrigatório." });
             if (!email) return res.status(400).json({ error: "O campo 'email' é obrigatório." });
+            if (!telefone) return res.status(400).json({ error: "O campo 'telefone' é obrigatório." });
             if (!orgao) return res.status(400).json({ error: "O campo 'orgao' é obrigatório." });
 
             const itemIds = itens.map(i => Number(i.item));
@@ -70,6 +71,7 @@ export default async function handler(req, res) {
                     valor_total: it.valor_total,
                     nome,
                     email,
+                    telefone,
                     orgao
                 };
             }).filter(it => it !== null);

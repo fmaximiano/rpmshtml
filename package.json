@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.1"
+    "@supabase/supabase-js": "^2.49.1",
+    "vercel": "^41.4.0"
   }
 }

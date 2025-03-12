@@ -56,14 +56,37 @@
             <label for="email">Email:</label>
             <input type="email" id="email" placeholder="Digite seu email" required>
         
+            <label for="telefone">Telefone:</label>
+            <input type="text" id="telefone" name="telefone" placeholder="Digite seu telefone" maxlength="15" oninput="formatarTelefone(this)" >
+
             <label for="orgao">Órgão:</label>
             <input type="text" id="orgao" placeholder="Digite o órgão" required>
         
+            
+
             <button id="enviarBtn">Enviar</button>
         </div>
     </div>
 
     <script>
+
+        function formatarTelefone(input) {
+                let valor = input.value.replace(/\D/g, ""); // Remove tudo que não for número
+
+                if (valor.length > 10) {
+                    // Formato com 9 dígitos no celular
+                    valor = valor.replace(/^(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+                } else if (valor.length > 6) {
+                    // Formato fixo com 8 dígitos
+                    valor = valor.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+                } else if (valor.length > 2) {
+                    // Apenas o DDD
+                    valor = valor.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
+                }
+
+                input.value = valor;
+        }
+
         let selectedItems = new Map();
         let currentLote = 1;
 
@@ -262,6 +285,7 @@
         document.getElementById("enviarBtn").addEventListener("click", async function () {
             const nome = document.getElementById("nome").value.trim();
             const email = document.getElementById("email").value.trim();
+            const telefone = document.getElementById("telefone").value.trim();
             const orgao = document.getElementById("orgao").value.trim();
 
             if (selectedItems.size === 0) {
@@ -269,7 +293,7 @@
                 return;
             }
 
-            if (!nome || !email || !orgao) {
+            if (!nome || !email || !telefone || !orgao) {
                 alert("Por favor, preencha todos os campos antes de enviar.");
                 return;
             }
@@ -291,6 +315,7 @@
                 itens: itensParaEnviar,
                 nome: nome,
                 email: email,
+                telefone: telefone,
                 orgao: orgao
             };
 
@@ -311,6 +336,7 @@
                     updateSelectedItems();
                     document.getElementById("nome").value = "";
                     document.getElementById("email").value = "";
+                    document.getElementById("telefone").value = "";
                     document.getElementById("orgao").value = "";
                     fetchItems();
                 } else {

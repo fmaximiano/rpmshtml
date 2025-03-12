@@ -1,118 +1,122 @@
+/* Reset básico */
 body, html {
     width: 100%;
     max-width: 100vw;
-    overflow-x: hidden; /* Bloqueia qualquer rolagem horizontal */
+    overflow-x: hidden; /* Bloqueia a rolagem horizontal */
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f6f9; /* Fundo mais claro */
+    color: #333; /* Cor mais suave para o texto */
 }
 
+/* Ajusta os campos numéricos */
 .quantidade-input {
-    width: 50px; /* Ajuste este valor conforme necessário */
-    padding: 1px;
+    width: 50px;
+    padding: 5px;
     text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #fff;
 }
 
-
+/* Barra de pesquisa aprimorada */
 .search-container {
-    width:98%;
-    display:flex;
+    width: 98%;
+    display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;   
+    padding: 15px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     gap: 20px;
 }
 
-
-/* Estiliza o campo de entrada */
+/* Campo de entrada refinado */
 #searchInput {
     flex-grow: 1;
-    max-width: 400px; /* Limita para não ficar muito largo */
-    padding: 8px;
+    max-width: 400px;
+    padding: 10px;
     font-size: 14px;
-    border: 1px solid #000000;
-    border-radius: 5px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
     outline: none;
     transition: all 0.3s ease-in-out;
 }
 
-/* Efeito ao focar no campo */
+/* Efeito ao focar */
 #searchInput:focus {
-    border-color: #007bff; /* Azul ao focar */
-    box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.5);
+    border-color: #007bff;
+    box-shadow: 0px 0px 6px rgba(0, 123, 255, 0.5);
 }
 
-
-/* Container principal que divide a tela */
+/* Layout principal */
 .container {
-    max-width: 100%;
     display: flex;
-    flex-direction: row; /* Mantém os blocos lado a lado */
-    justify-content: space-between; /* Garante espaçamento entre as colunas */
-    align-items: flex-start; /* Alinha ao topo */
-    gap: 10px; /* Espaço entre os blocos */
-    padding: 10px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px;
     width: 100%;
     box-sizing: border-box;
     overflow-x: hidden;
 }
 
-
-
-
-/* Bloco da lista de itens selecionados */
+/* Bloco da lista de itens */
 .selected-container {
-    flex: 1; /* Ocupa uma parte do espaço disponível */
-    width: auto; /* Evita que fique muito pequeno */
-    max-height: 70vh; /* Define uma altura máxima */
-    overflow-y: auto; /* Permite rolagem se necessário */
-    overflow-x: auto;
-    border: 1px solid #ccc;
-    padding-left: 10px;
-    background-color: #f9f9f9;
-    font-size: 12px;
+    flex: 1;
+    max-height: 70vh;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fafafa;
+    font-size: 13px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Bloco da tabela */
+/* Tabela refinada */
 .table-container {
-    flex: 2; /* Ocupa mais espaço que a lista de selecionados */
-    min-width: 500px; /* Evita que a tabela fique comprimida */
+    flex: 2;
+    min-width: 500px;
     max-width: 65%;
     max-height: 70vh;
     overflow-x: auto;
-    overflow-y: auto; /* Permite rolagem apenas na área da tabela */
-    border: 1px solid #ccc; /* Opcional, para destacar o contêiner */
-    font-size: 12px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+/* Cabeçalho fixo da tabela */
 #itemsTable thead {
     position: sticky;
     top: 0;
-    background-color: #f1f1f1; /* Fundo fixo para o cabeçalho */
-    z-index: 10; /* Garante que o cabeçalho fique acima do conteúdo */
+    background-color: #f1f1f1;
+    z-index: 10;
 }
 
-
-
-/* Ajuste na tabela */
+/* Ajustes na tabela */
 #itemsTable {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
-    
+    font-size: 13px;
 }
 
+/* Células mais amigáveis */
 #itemsTable th, #itemsTable td {
-    padding: 8px;
-    border: 1px solid #ccc;
-    text-align: justify;
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
 }
-
 
 #itemsTable th {
-    background-color: #f1f1f1;
+    background-color: #f8f9fa;
+    font-weight: bold;
 }
 
-#itemsTable th:nth-child(10) { width: 12%; } /* valor total */
-
-
+/* Botões de filtro */
 .filter-container {
     display: flex;
     justify-content: center;
@@ -121,13 +125,13 @@ body, html {
 }
 
 .filter-btn {
-    padding: 8px 10px;
+    padding: 10px 15px;
     border: none;
     cursor: pointer;
-    background-color: #ccc;
+    background-color: #e0e0e0;
     border-radius: 5px;
     font-weight: bold;
-    transition: background-color 0.5s;
+    transition: background-color 0.3s ease-in-out;
 }
 
 .filter-btn.active {
@@ -135,75 +139,64 @@ body, html {
     color: white;
 }
 
-
-
-
-
-
+/* Melhor estilo para os formulários */
 .form-container {
-    width: 100%; /* Ocupa toda a largura */
+    width: 98%;
     display: flex;
-    justify-content: center; /* Centraliza os campos */
+    justify-content: center;
     padding: 15px;
-    background: #f8f9fa;
-    border: 1px solid #ccc;
-    margin-top: 10px; /* Adiciona um espaço acima */
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+    margin-top: 10px;
 }
 
+/* Inputs e botões do formulário */
 .user-form {
     display: flex;
     align-items: center;
-    gap: 10px; /* Espaço entre os campos */
+    gap: 15px;
     width: 100%;
-    padding: 0px 20px;
+    padding: 10px 20px;
+    background: white;
 }
 
+
+
 .user-form input {
-    flex: 1; /* Faz os inputs ocuparem o espaço disponível */
+    flex: 1;
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    min-width: 150px; /* Garante um tamanho mínimo */
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    min-width: 150px;
+    transition: border 0.3s;
+}
+
+/* Efeito ao focar */
+.user-form input:focus {
+    border-color: #007bff;
+    box-shadow: 0px 0px 6px rgba(0, 123, 255, 0.5);
 }
 
 .user-form label {
-    font-weight:bold;
+    font-weight: bold;
     font-size: 14px;
 }
 
+/* Estilização dos botões */
 .user-form button {
-    padding: 10px 15px;
+    padding: 12px 18px;
     background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    transition: background-color 0.3s;
     min-width: 100px;
-    margin: 0px 30px;
 }
 
-.user-form button:hover {
-    background-color: #0056b3;
-}
-
-
-
-
-
-
-
-
-
-
-.user-form label {
-    display: block;
-    font-size: 14px;
-}
-
-
-
-
-
+/* Efeito hover no botão */
 .user-form button:hover {
     background-color: #0056b3;
 }
