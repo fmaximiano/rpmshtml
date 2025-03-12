@@ -45,10 +45,7 @@
         <div class="selected-container">
             <h3>Itens Selecionados</h3>
             <ul id="selectedList"></ul>
-     
-
-    </div>
-
+        </div>
     </div>
 
     <div class="form-container">
@@ -66,10 +63,7 @@
         </div>
     </div>
 
-    
-
     <script>
-
         let selectedItems = new Map();
         let currentLote = 1;
 
@@ -83,8 +77,8 @@
         }
 
         const API_URL = window.location.hostname === "localhost"
-        ? "http://localhost:3000/api/supabase"
-        : "/api/supabase";
+            ? "http://localhost:3000/api/supabase"
+            : "/api/supabase";
 
         // Busca os itens na API
         async function fetchItems() {
@@ -94,7 +88,6 @@
 
                 const response = await fetch(`${API_URL}?search=${encodeURIComponent(search)}&lote=${lote}`);
                 const data = await response.json();
-
 
                 if (!response.ok) {
                     throw new Error(data.error || "Erro ao buscar dados");
@@ -116,63 +109,55 @@
 
         // Renderiza a tabela
         function renderTable(items) {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
 
-        items.sort((a, b) => a.item - b.item);
+            items.sort((a, b) => a.item - b.item);
 
-        items.forEach(item => {
-            const itemSelecionado = selectedItems.get(item.item);
-            const valorUnMensal = parseFloat(item.valor_un_mensal);
-            const qtdeMinima = item.qtde_minima || 1;
-            const isChecked = selectedItems.has(item.item); // Verifica se o item foi salvo na seleção
-            const quantidadeMensal = isChecked ? itemSelecionado.quantidade_mensal : 0; // Recupera a quantidade salva ou inicia em 0
+            items.forEach(item => {
+                const itemSelecionado = selectedItems.get(item.item);
+                const valorUnMensal = parseFloat(item.valor_un_mensal);
+                const qtdeMinima = item.qtde_minima || 1;
+                const isChecked = selectedItems.has(item.item);
+                const quantidadeMensal = isChecked ? itemSelecionado.quantidade_mensal : 0;
 
-            const quantidadeTotal = quantidadeMensal * 36;
-            const valorUnTotal = valorUnMensal * 36;
-            const valorTotal = quantidadeMensal * valorUnMensal * 36;
+                const quantidadeTotal = quantidadeMensal * 36;
+                const valorUnTotal = valorUnMensal * 36;
+                const valorTotal = quantidadeMensal * valorUnMensal * 36;
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" 
-                    data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
-                    data-min="${qtdeMinima}"></td>
-                <td>${item.item}</td>
-                <td>${item.cod_catmas || '-'}</td>
-                <td>${item.sku || '-'}</td>
-                <td>${item.desc_catmas}</td>
-                <td>R$ ${formatarNumero(valorUnMensal)}</td>
-                <td><input type="number" class="quantidade-input" data-id="${item.item}" 
-                    value="${quantidadeMensal}" min="${qtdeMinima}" step="1"
-                    ${isChecked ? "" : "disabled"}></td>
-                <td class="quantidade-total" data-id="${item.item}">${quantidadeTotal}</td>
-                <td class="valor-un-total" data-id="${item.item}">R$ ${formatarNumero(valorUnTotal)}</td>
-                <td class="valor-total" data-id="${item.item}">R$ ${formatarNumero(valorTotal)}</td>
-            `;
-            tbody.appendChild(tr);
-        });
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" 
+                        data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
+                        data-min="${qtdeMinima}"></td>
+                    <td>${item.item}</td>
+                    <td>${item.cod_catmas || '-'}</td>
+                    <td>${item.sku || '-'}</td>
+                    <td>${item.desc_catmas}</td>
+                    <td>R$ ${formatarNumero(valorUnMensal)}</td>
+                    <td><input type="number" class="quantidade-input" data-id="${item.item}" 
+                        value="${quantidadeMensal}" min="${qtdeMinima}" step="1"
+                        ${isChecked ? "" : "disabled"}></td>
+                    <td class="quantidade-total" data-id="${item.item}">${quantidadeTotal}</td>
+                    <td class="valor-un-total" data-id="${item.item}">R$ ${formatarNumero(valorUnTotal)}</td>
+                    <td class="valor-total" data-id="${item.item}">R$ ${formatarNumero(valorTotal)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
 
-        // 🔥 Atualiza checkboxes e quantidades depois que os elementos foram adicionados ao DOM
-        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-            const id = checkbox.dataset.id;
-            const quantidadeInput = document.querySelector(`.quantidade-input[data-id="${id}"]`);
+            document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+                const id = checkbox.dataset.id;
+                const quantidadeInput = document.querySelector(`.quantidade-input[data-id="${id}"]`);
 
-            if (selectedItems.has(id)) {
-                checkbox.checked = true; // Marca os checkboxes corretamente
-                quantidadeInput.disabled = false; // Habilita o campo de quantidade
-                quantidadeInput.value = selectedItems.get(id).quantidade_mensal; // Restaura a quantidade correta
-            }
-        });
+                if (selectedItems.has(id)) {
+                    checkbox.checked = true;
+                    quantidadeInput.disabled = false;
+                    quantidadeInput.value = selectedItems.get(id).quantidade_mensal;
+                }
+            });
 
-        addEventListeners(); // Reaplica os eventos
+            addEventListeners();
         }
-
-
-
-
-
-
-
 
         // Atualiza dinamicamente uma linha da tabela
         function updateTableRow(id, quantidadeMensal, valorUnMensal) {
@@ -187,60 +172,56 @@
 
         // Adiciona os eventos
         function addEventListeners() {
-        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', function () {
-                const id = this.dataset.id;
-                const desc = this.dataset.desc;
-                const valor = parseFloat(this.dataset.valor);
-                const qtdeMinima = parseInt(this.dataset.min) || 1;
-                const quantidadeInput = document.querySelector(`.quantidade-input[data-id="${id}"]`);
+            document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    const id = this.dataset.id;
+                    const desc = this.dataset.desc;
+                    const valor = parseFloat(this.dataset.valor);
+                    const qtdeMinima = parseInt(this.dataset.min) || 1;
+                    const quantidadeInput = document.querySelector(`.quantidade-input[data-id="${id}"]`);
 
-                if (this.checked) {
-                    selectedItems.set(id, { desc, valor, quantidade_mensal: qtdeMinima });
-                    quantidadeInput.disabled = false;
-                    quantidadeInput.value = qtdeMinima; // Define o valor mínimo ao selecionar
-                    updateTableRow(id, qtdeMinima, valor);
-                } else {
-                    selectedItems.delete(id);
-                    quantidadeInput.disabled = true;
-                    quantidadeInput.value = 0;
-                    updateTableRow(id, 0, valor);
-                }
-                updateSelectedItems();
-            });
-        });
-
-        document.querySelectorAll('.quantidade-input').forEach(input => {
-            input.addEventListener('focus', function () {
-                if (parseInt(this.value) === 0) {
-                    this.value = this.min;
-                }
-            });
-
-            input.addEventListener('input', function () {
-                const id = this.dataset.id;
-                let quantidadeMensal = parseInt(this.value) || 0;
-                const minValue = parseInt(this.min) || 1;
-                const valorUnMensal = parseFloat(this.parentElement.parentElement.querySelector('.item-checkbox').dataset.valor);
-
-                if (quantidadeMensal < minValue) {
-                    this.value = minValue;
-                    quantidadeMensal = minValue;
-                }
-
-                updateTableRow(id, quantidadeMensal, valorUnMensal);
-
-                if (selectedItems.has(id)) {
-                    selectedItems.get(id).quantidade_mensal = quantidadeMensal;
+                    if (this.checked) {
+                        selectedItems.set(id, { desc, valor, quantidade_mensal: qtdeMinima });
+                        quantidadeInput.disabled = false;
+                        quantidadeInput.value = qtdeMinima;
+                        updateTableRow(id, qtdeMinima, valor);
+                    } else {
+                        selectedItems.delete(id);
+                        quantidadeInput.disabled = true;
+                        quantidadeInput.value = 0;
+                        updateTableRow(id, 0, valor);
+                    }
                     updateSelectedItems();
-                }
+                });
             });
-        });
+
+            document.querySelectorAll('.quantidade-input').forEach(input => {
+                input.addEventListener('focus', function () {
+                    if (parseInt(this.value) === 0) {
+                        this.value = this.min;
+                    }
+                });
+
+                input.addEventListener('input', function () {
+                    const id = this.dataset.id;
+                    let quantidadeMensal = parseInt(this.value) || 0;
+                    const minValue = parseInt(this.min) || 1;
+                    const valorUnMensal = parseFloat(this.parentElement.parentElement.querySelector('.item-checkbox').dataset.valor);
+
+                    if (quantidadeMensal < minValue) {
+                        this.value = minValue;
+                        quantidadeMensal = minValue;
+                    }
+
+                    updateTableRow(id, quantidadeMensal, valorUnMensal);
+
+                    if (selectedItems.has(id)) {
+                        selectedItems.get(id).quantidade_mensal = quantidadeMensal;
+                        updateSelectedItems();
+                    }
+                });
+            });
         }
-
-
-
-
 
         // Atualiza a lista de itens selecionados
         function updateSelectedItems() {
@@ -277,59 +258,61 @@
             });
         });
 
+        // Evento do botão Enviar
         document.getElementById("enviarBtn").addEventListener("click", async function () {
             const nome = document.getElementById("nome").value.trim();
             const email = document.getElementById("email").value.trim();
             const orgao = document.getElementById("orgao").value.trim();
 
-            // Verifica se há itens selecionados
             if (selectedItems.size === 0) {
                 alert("Nenhum item foi selecionado!");
                 return;
             }
 
-            // Verifica se todos os campos estão preenchidos
             if (!nome || !email || !orgao) {
                 alert("Por favor, preencha todos os campos antes de enviar.");
                 return;
             }
 
-            // Monta o array de itens para enviar
+            // Monta o array de itens para enviar, sem incluir nome, email e orgao em cada item
             const itensParaEnviar = Array.from(selectedItems.entries()).map(([id, item]) => ({
                 item: id,
-                cod_catmas: item.cod_catmas || "-", 
-                sku: item.sku || "-",
+                sku: item.sku || "-", // Inclui SKU padrão se não estiver presente
                 desc_catmas: item.desc,
                 valor_un_mensal: item.valor,
-                quantidade_mensal: item.quantidade_mensal,
-                quantidade_total: item.quantidade_mensal * 36,
+                qtde_mensal: item.quantidade_mensal,
+                qtde_total: item.quantidade_mensal * 36,
                 valor_un_total: item.valor * 36,
                 valor_total: item.quantidade_mensal * item.valor * 36,
+            }));
+
+            // Estrutura o corpo da requisição com itens e os campos no nível raiz
+            const corpoRequisicao = {
+                itens: itensParaEnviar,
                 nome: nome,
                 email: email,
                 orgao: orgao
-            }));
+            };
 
             try {
-                // Envia os dados para o backend (Supabase)
                 const response = await fetch("/api/supabase", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ itens: itensParaEnviar }),
+                    body: JSON.stringify(corpoRequisicao),
                 });
 
                 const result = await response.json();
 
                 if (response.ok) {
                     alert("Itens enviados com sucesso!");
-                    selectedItems.clear(); // Limpa os itens selecionados
-                    updateSelectedItems(); // Atualiza a lista de selecionados na tela
+                    selectedItems.clear();
+                    updateSelectedItems();
                     document.getElementById("nome").value = "";
                     document.getElementById("email").value = "";
                     document.getElementById("orgao").value = "";
-                    fetchItems(); // Atualiza a tabela para limpar os checkboxes
+                    fetchItems();
                 } else {
                     alert("Erro ao enviar os dados: " + result.error);
                 }
