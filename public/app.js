@@ -33,7 +33,7 @@ async function fetchItems() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Erro ao buscar itens.");
         renderTable(data);
-        updateTableHeaders(lote); // Atualiza cabeçalhos dinamicamente
+        updateTableHeaders(lote);
     } catch (error) {
         document.getElementById('tableBody').innerHTML =
             `<tr><td colspan="10">${error.message}</td></tr>`;
@@ -69,13 +69,13 @@ function renderTable(items) {
         let quantidadeTotal, valorUnTotal, valorTotal;
 
         if (lote === 1) {
-            quantidadeTotal = quantidade * 36;
             valorUnTotal = parseFloat(item.valor_un_mensal) * 36;
+            quantidadeTotal = quantidade * 36;
             valorTotal = quantidade * valorUnTotal;
         } else {
-            quantidadeTotal = quantidade; // Não usado nos Lotes 2, 3, 4
-            valorUnTotal = parseFloat(item.valor_un_total) || 0;
-            valorTotal = quantidade * valorUnTotal;
+            valorUnTotal = parseFloat(item.valor_un_total) || 0; // Garante que valor_un_total seja usado
+            quantidadeTotal = quantidade; // Não usado na exibição
+            valorTotal = quantidade * valorUnTotal; // Cálculo correto para Lotes 2, 3, 4
         }
 
         const tr = document.createElement('tr');
@@ -105,7 +105,7 @@ function updateTableRow(id, quantidade, valorUnMensal, valorUnTotal, lote) {
         valorTotal = quantidade * (valorUnMensal * 36);
         document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
     } else {
-        valorTotal = quantidade * valorUnTotal;
+        valorTotal = quantidade * valorUnTotal; // Multiplica pela quantidade diretamente
     }
 
     document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorTotal)}`;
@@ -137,8 +137,8 @@ function addEventListeners() {
             if (this.checked) {
                 selectedItems.set(id, { 
                     desc, 
-                    valor: parseFloat(valor), 
-                    valor_total: parseFloat(valorTotal), 
+                    valor: parseFloat(valor) || 0, 
+                    valor_total: parseFloat(valorTotal) || 0, 
                     quantidade_mensal: parseInt(min), 
                     lote 
                 });
