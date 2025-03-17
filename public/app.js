@@ -43,7 +43,7 @@ async function fetchItems() {
 }
 
 // Renderiza a tabela principal
-function renderTable(items) {
+    function renderTable(items) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
 
@@ -83,15 +83,27 @@ function renderTable(items) {
 
     addEventListeners();
     updateSelectedItems();
-}
+    }
 
 
 // Atualiza dinamicamente uma linha específica da tabela
-function updateTableRow(id, qtdeMensal, valorUnMensal) {
-    document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = qtdeMensal * 36;
-    document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorUnMensal * 36)}`;
-    document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(qtdeMensal * valorUnMensal * 36)}`;
+function updateTableRow(id, quantidadeMensal, valorUnMensal, lote) {
+    let quantidadeTotal, valorUnTotal, valorTotal;
+
+    if ([2, 3, 4].includes(Number(lote))) {
+        quantidadeTotal = quantidadeMensal; 
+        valorUnTotal = parseFloat(document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent.replace("R$ ", "").replace(",", ".")) || 0;
+        valorTotal = quantidadeMensal * valorUnTotal;
+    } else {
+        quantidadeTotal = quantidadeMensal * 36;
+        valorUnTotal = valorUnMensal * 36;
+        valorTotal = quantidadeMensal * valorUnTotal;
+    }
+
+    document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
+    document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorTotal)}`;
 }
+
 
 // Atualiza lista lateral de itens selecionados
 function updateSelectedItems() {

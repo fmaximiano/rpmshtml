@@ -21,7 +21,7 @@ export default async function handler(req, res) {
             const { search = "", lote } = req.query;
             let query = supabase
                 .from("licencas")
-                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, qtde_minima, lote");
+                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, qtde_minima, lote, alerta"); // Incluído alerta aqui
 
             if (lote) query = query.eq("lote", lote);
             if (search) query = query.or(`desc_catmas.ilike.%${search}%,sku.ilike.%${search}%`);
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
             const itemIds = itens.map(i => Number(i.item));
             const { data: itemsData, error: fetchError } = await supabase
                 .from("licencas")
-                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, qtde_minima, lote")
+                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, qtde_minima, lote, alerta")
                 .in("item", itemIds);
 
             if (fetchError) throw fetchError;
@@ -65,6 +65,7 @@ export default async function handler(req, res) {
                     valor_un_mensal: itemBanco.valor_un_mensal,
                     qtde_minima: itemBanco.qtde_minima,
                     lote: itemBanco.lote,
+                    alerta: itemBanco.alerta, // incluindo alerta para referência futura
                     quantidade_mensal: it.qtde_mensal,
                     qtde_total: it.qtde_total,
                     valor_un_total: it.valor_un_total,
