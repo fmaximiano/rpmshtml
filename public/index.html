@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Seleção de Itens</title>
     <link rel="stylesheet" href="static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="search-container">
@@ -15,12 +16,15 @@
             aria-label="Buscar itens por descrição"
         />
         <div class="filter-container">
-            <button class="filter-btn active" data-lote="1" aria-label="Filtrar por Lote 1">LOTE 1</button>
-            <button class="filter-btn" data-lote="2" aria-label="Filtrar por Lote 2">LOTE 2</button>
-            <button class="filter-btn" data-lote="3" aria-label="Filtrar por Lote 3">LOTE 3</button>
-            <button class="filter-btn" data-lote="4" aria-label="Filtrar por Lote 4">LOTE 4</button>
+            <button class="filter-btn active" data-lote="1">LOTE 1</button>
+            <button class="filter-btn" data-lote="2">LOTE 2</button>
+            <button class="filter-btn" data-lote="3">LOTE 3</button>
+            <button class="filter-btn" data-lote="4">LOTE 4</button>
         </div>
     </div>
+
+    <div id="alerta-item" style="color: red; margin-bottom: 15px;"></div>
+
     <div class="container">
         <div class="table-container">
             <table id="itemsTable">
@@ -51,305 +55,23 @@
     <div class="form-container">
         <div class="user-form">
             <label for="nome">Nome:</label>
-            <input type="text" id="nome" placeholder="Digite seu nome" required>
+            <input type="text" id="nome" required>
         
             <label for="email">Email:</label>
-            <input type="email" id="email" placeholder="Digite seu email" required>
+            <input type="email" id="email" required>
         
             <label for="telefone">Telefone:</label>
-            <input type="text" id="telefone" name="telefone" placeholder="Digite seu telefone" maxlength="15" oninput="formatarTelefone(this)" >
+            <input type="text" id="telefone" maxlength="15" oninput="formatarTelefone(this)">
 
             <label for="orgao">Órgão:</label>
-            <input type="text" id="orgao" placeholder="Digite o órgão" required>
-        
-            
+            <input type="text" id="orgao" required>
 
             <button id="enviarBtn">Enviar</button>
         </div>
     </div>
 
-    <script>
+    <div id="mensagem-resultado"></div>
 
-        function formatarTelefone(input) {
-                let valor = input.value.replace(/\D/g, ""); // Remove tudo que não for número
-
-                if (valor.length > 10) {
-                    // Formato com 9 dígitos no celular
-                    valor = valor.replace(/^(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-                } else if (valor.length > 6) {
-                    // Formato fixo com 8 dígitos
-                    valor = valor.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
-                } else if (valor.length > 2) {
-                    // Apenas o DDD
-                    valor = valor.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
-                }
-
-                input.value = valor;
-        }
-
-        let selectedItems = new Map();
-        let currentLote = 1;
-
-        // Função de debounce
-        function debounce(func, wait) {
-            let timeout;
-            return function (...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, args), wait);
-            };
-        }
-
-        const API_URL = window.location.hostname === "localhost"
-            ? "http://localhost:3000/api/supabase"
-            : "/api/supabase";
-
-        // Busca os itens na API
-        async function fetchItems() {
-            try {
-                const search = document.getElementById("searchInput").value || "";
-                const lote = currentLote;
-
-                const response = await fetch(`${API_URL}?search=${encodeURIComponent(search)}&lote=${lote}`);
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || "Erro ao buscar dados");
-                }
-
-                console.log("Dados recebidos:", data);
-                renderTable(data);
-            } catch (error) {
-                console.error("Erro ao buscar dados da API:", error);
-                document.getElementById('tableBody').innerHTML = 
-                    '<tr><td colspan="8">Erro ao carregar dados. Tente novamente.</td></tr>';
-            }
-        }
-
-        // Formata números no padrão brasileiro
-        function formatarNumero(numero) {
-            return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        // Renderiza a tabela
-        function renderTable(items) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-
-            items.sort((a, b) => a.item - b.item);
-
-            items.forEach(item => {
-                const itemSelecionado = selectedItems.get(item.item);
-                const valorUnMensal = parseFloat(item.valor_un_mensal);
-                const qtdeMinima = item.qtde_minima || 1;
-                const isChecked = selectedItems.has(item.item);
-                const quantidadeMensal = isChecked ? itemSelecionado.quantidade_mensal : 0;
-
-                const quantidadeTotal = quantidadeMensal * 36;
-                const valorUnTotal = valorUnMensal * 36;
-                const valorTotal = quantidadeMensal * valorUnMensal * 36;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" 
-                        data-desc="${item.desc_catmas}" data-valor="${valorUnMensal}" 
-                        data-min="${qtdeMinima}"></td>
-                    <td>${item.item}</td>
-                    <td>${item.cod_catmas || '-'}</td>
-                    <td>${item.sku || '-'}</td>
-                    <td>${item.desc_catmas}</td>
-                    <td>R$ ${formatarNumero(valorUnMensal)}</td>
-                    <td><input type="number" class="quantidade-input" data-id="${item.item}" 
-                        value="${quantidadeMensal}" min="${qtdeMinima}" step="1"
-                        ${isChecked ? "" : "disabled"}></td>
-                    <td class="quantidade-total" data-id="${item.item}">${quantidadeTotal}</td>
-                    <td class="valor-un-total" data-id="${item.item}">R$ ${formatarNumero(valorUnTotal)}</td>
-                    <td class="valor-total" data-id="${item.item}">R$ ${formatarNumero(valorTotal)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-                const id = checkbox.dataset.id;
-                const quantidadeInput = document.querySelector(`.quantidade-input[data-id="${id}"]`);
-
-                if (selectedItems.has(id)) {
-                    checkbox.checked = true;
-                    quantidadeInput.disabled = false;
-                    quantidadeInput.value = selectedItems.get(id).quantidade_mensal;
-                }
-            });
-
-            addEventListeners();
-        }
-
-        // Atualiza dinamicamente uma linha da tabela
-        function updateTableRow(id, quantidadeMensal, valorUnMensal) {
-            const quantidadeTotal = quantidadeMensal * 36;
-            const valorUnTotal = valorUnMensal * 36;
-            const valorTotal = quantidadeMensal * valorUnMensal * 36;
-
-            document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
-            document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorUnTotal)}`;
-            document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorTotal)}`;
-        }
-
-        // Adiciona os eventos
-        function addEventListeners() {
-            document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', function () {
-                    const id = this.dataset.id;
-                    const desc = this.dataset.desc;
-                    const valor = parseFloat(this.dataset.valor);
-                    const qtdeMinima = parseInt(this.dataset.min) || 1;
-                    const quantidadeInput = document.querySelector(`.quantidade-input[data-id="${id}"]`);
-
-                    if (this.checked) {
-                        selectedItems.set(id, { desc, valor, quantidade_mensal: qtdeMinima });
-                        quantidadeInput.disabled = false;
-                        quantidadeInput.value = qtdeMinima;
-                        updateTableRow(id, qtdeMinima, valor);
-                    } else {
-                        selectedItems.delete(id);
-                        quantidadeInput.disabled = true;
-                        quantidadeInput.value = 0;
-                        updateTableRow(id, 0, valor);
-                    }
-                    updateSelectedItems();
-                });
-            });
-
-            document.querySelectorAll('.quantidade-input').forEach(input => {
-                input.addEventListener('focus', function () {
-                    if (parseInt(this.value) === 0) {
-                        this.value = this.min;
-                    }
-                });
-
-                input.addEventListener('input', function () {
-                    const id = this.dataset.id;
-                    let quantidadeMensal = parseInt(this.value) || 0;
-                    const minValue = parseInt(this.min) || 1;
-                    const valorUnMensal = parseFloat(this.parentElement.parentElement.querySelector('.item-checkbox').dataset.valor);
-
-                    if (quantidadeMensal < minValue) {
-                        this.value = minValue;
-                        quantidadeMensal = minValue;
-                    }
-
-                    updateTableRow(id, quantidadeMensal, valorUnMensal);
-
-                    if (selectedItems.has(id)) {
-                        selectedItems.get(id).quantidade_mensal = quantidadeMensal;
-                        updateSelectedItems();
-                    }
-                });
-            });
-        }
-
-        // Atualiza a lista de itens selecionados
-        function updateSelectedItems() {
-            const selectedList = document.getElementById('selectedList');
-            selectedList.innerHTML = '';
-
-            selectedItems.forEach((data, id) => {
-                const quantidadeTotal = data.quantidade_mensal * 36;
-                const valorUnTotal = data.valor * 36;
-                const valorTotal = data.quantidade_mensal * data.valor * 36;
-
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <strong>Item:</strong> ${id} - ${data.desc} <br>
-                    <strong>Qtde Mensal:</strong> ${data.quantidade_mensal} <br>
-                    <strong>Qtde Total:</strong> ${quantidadeTotal} <br>
-                    <strong>Valor Unitário Total:</strong> R$ ${formatarNumero(valorUnTotal)} <br>
-                    <strong>Valor Total:</strong> R$ ${formatarNumero(valorTotal)}<br><br>
-                `;
-                selectedList.appendChild(li);
-            });
-        }
-
-        // Evento de busca com debounce
-        document.getElementById('searchInput').addEventListener('input', debounce(fetchItems, 300));
-
-        // Evento dos filtros de lote
-        document.querySelectorAll('.filter-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                currentLote = this.dataset.lote;
-                fetchItems();
-            });
-        });
-
-        // Evento do botão Enviar
-        document.getElementById("enviarBtn").addEventListener("click", async function () {
-            const nome = document.getElementById("nome").value.trim();
-            const email = document.getElementById("email").value.trim();
-            const telefone = document.getElementById("telefone").value.trim();
-            const orgao = document.getElementById("orgao").value.trim();
-
-            if (selectedItems.size === 0) {
-                alert("Nenhum item foi selecionado!");
-                return;
-            }
-
-            if (!nome || !email || !telefone || !orgao) {
-                alert("Por favor, preencha todos os campos antes de enviar.");
-                return;
-            }
-
-            // Monta o array de itens para enviar, sem incluir nome, email e orgao em cada item
-            const itensParaEnviar = Array.from(selectedItems.entries()).map(([id, item]) => ({
-                item: id,
-                sku: item.sku || "-", // Inclui SKU padrão se não estiver presente
-                desc_catmas: item.desc,
-                valor_un_mensal: item.valor,
-                qtde_mensal: item.quantidade_mensal,
-                qtde_total: item.quantidade_mensal * 36,
-                valor_un_total: item.valor * 36,
-                valor_total: item.quantidade_mensal * item.valor * 36,
-            }));
-
-            // Estrutura o corpo da requisição com itens e os campos no nível raiz
-            const corpoRequisicao = {
-                itens: itensParaEnviar,
-                nome: nome,
-                email: email,
-                telefone: telefone,
-                orgao: orgao
-            };
-
-            try {
-                const response = await fetch("/api/supabase", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(corpoRequisicao),
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    alert("Itens enviados com sucesso!");
-                    selectedItems.clear();
-                    updateSelectedItems();
-                    document.getElementById("nome").value = "";
-                    document.getElementById("email").value = "";
-                    document.getElementById("telefone").value = "";
-                    document.getElementById("orgao").value = "";
-                    fetchItems();
-                } else {
-                    alert("Erro ao enviar os dados: " + result.error);
-                }
-            } catch (error) {
-                console.error("Erro ao enviar os dados:", error);
-                alert("Erro ao enviar os dados. Tente novamente.");
-            }
-        });
-
-        // Carrega os itens iniciais
-        fetchItems();
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
