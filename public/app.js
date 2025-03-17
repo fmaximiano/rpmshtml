@@ -14,8 +14,8 @@ function debounce(func, wait) {
     };
 }
 
-// Formata valores numéricos
 function formatarNumero(numero) {
+    if (!numero || isNaN(numero)) return "0,00";
     return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
@@ -108,14 +108,12 @@ function addEventListeners() {
                 selectedItems.set(id, { desc, valor: parseFloat(valor), quantidade_mensal: parseInt(min) });
                 quantidadeInput.disabled = false;
                 quantidadeInput.value = min;
-                alertaDiv.textContent = alerta || '';
-                updateTableRow(id, min, valor);
+                alertaDiv.textContent = alerta && alerta.trim() !== "" ? alerta : "";
             } else {
                 selectedItems.delete(id);
                 quantidadeInput.disabled = true;
                 quantidadeInput.value = 0;
-                alertaDiv.textContent = '';
-                updateTableRow(id, 0, valor);
+                alertaDiv.textContent = ""; // Limpa o alerta ao desmarcar
             }
             updateSelectedItems();
         });
