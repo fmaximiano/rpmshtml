@@ -21,7 +21,7 @@ export default async function handler(req, res) {
             const { search = "", lote } = req.query;
             let query = supabase
                 .from("licencas")
-                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, qtde_minima, lote, alerta");
+                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, qtde_minima, lote");
 
             if (lote) query = query.eq("lote", lote);
             if (search) query = query.or(`desc_catmas.ilike.%${search}%,sku.ilike.%${search}%`);
@@ -29,20 +29,11 @@ export default async function handler(req, res) {
             const { data, error } = await query;
             if (error) throw error;
 
-            // 🔹 Substitui `null` por string vazia no alerta para evitar erros no frontend
-            const sanitizedData = data.map(item => ({
-                ...item,
-                alerta: item.alerta || ''  // Se for null, vira string vazia
-            }));
-
-            return res.status(200).json(sanitizedData);
+            return res.status(200).json(data);
         } catch (error) {
-            console.error("Erro na consulta ao Supabase:", error);
             return res.status(500).json({ error: error.message });
         }
-    } 
-
-    else if (req.method === "POST") {
+    } else if (req.method === "POST") {
         try {
             const { itens, nome, email, telefone, orgao } = req.body;
 
@@ -57,19 +48,13 @@ export default async function handler(req, res) {
             const itemIds = itens.map(i => Number(i.item));
             const { data: itemsData, error: fetchError } = await supabase
                 .from("licencas")
-                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, qtde_minima, lote, alerta")
+                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, qtde_minima, lote")
                 .in("item", itemIds);
 
             if (fetchError) throw fetchError;
 
-            // 🔹 Substitui valores `null` no alerta antes de processar os dados
-            const sanitizedItemsData = itemsData.map(item => ({
-                ...item,
-                alerta: item.alerta || ''  // Garante que `alerta` nunca seja `null`
-            }));
-
             const itensCompletos = itens.map(it => {
-                const itemBanco = sanitizedItemsData.find(dbItem => dbItem.item === Number(it.item));
+                const itemBanco = itemsData.find(dbItem => dbItem.item === Number(it.item));
                 if (!itemBanco) return null;
 
                 return {
@@ -80,7 +65,6 @@ export default async function handler(req, res) {
                     valor_un_mensal: itemBanco.valor_un_mensal,
                     qtde_minima: itemBanco.qtde_minima,
                     lote: itemBanco.lote,
-                    alerta: itemBanco.alerta,  // Agora sempre será uma string
                     quantidade_mensal: it.qtde_mensal,
                     qtde_total: it.qtde_total,
                     valor_un_total: it.valor_un_total,
@@ -101,12 +85,9 @@ export default async function handler(req, res) {
 
             return res.status(200).json({ message: "Itens salvos com sucesso!", data });
         } catch (error) {
-            console.error("Erro ao inserir dados no Supabase:", error);
             return res.status(500).json({ error: error.message });
         }
-    } 
-
-    else {
+    } else {
         return res.status(405).json({ error: "Método não permitido" });
     }
 }
