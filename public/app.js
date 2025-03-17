@@ -69,18 +69,18 @@ function renderTable(items) {
         let quantidadeTotal, valorUnTotal, valorTotal;
 
         if (lote === 1) {
-            valorUnTotal = parseFloat(item.valor_un_mensal) * 36;
+            valorUnTotal = parseFloat(item.valor_un_mensal) * 36; // Lote 1 usa valor_un_mensal
             quantidadeTotal = quantidade * 36;
             valorTotal = quantidade * valorUnTotal;
         } else {
-            valorUnTotal = parseFloat(item.valor_un_total) || 0; // Garante que valor_un_total seja usado
-            quantidadeTotal = quantidade; // Não usado na exibição
-            valorTotal = quantidade * valorUnTotal; // Cálculo correto para Lotes 2, 3, 4
+            valorUnTotal = parseFloat(item.valor_un_total) || 0; // Lotes 2, 3, 4 usam valor_un_total diretamente do BD
+            quantidadeTotal = quantidade; // Não exibido
+            valorTotal = quantidade * valorUnTotal; // Cálculo simples: quantidade * valor_un_total
         }
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" data-desc="${item.desc_catmas}" data-valor="${item.valor_un_mensal}" data-valor-total="${item.valor_un_total}" data-min="${qtdeMinima}" data-lote="${item.lote}" data-alerta="${item.alerta || ''}" ${isChecked ? 'checked' : ''}></td>
+            <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" data-desc="${item.desc_catmas}" data-valor="${item.valor_un_mensal || 0}" data-valor-total="${item.valor_un_total || 0}" data-min="${qtdeMinima}" data-lote="${item.lote}" data-alerta="${item.alerta || ''}" ${isChecked ? 'checked' : ''}></td>
             <td>${item.item}</td>
             <td>${item.cod_catmas || '-'}</td>
             <td>${item.sku || '-'}</td>
@@ -105,7 +105,7 @@ function updateTableRow(id, quantidade, valorUnMensal, valorUnTotal, lote) {
         valorTotal = quantidade * (valorUnMensal * 36);
         document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
     } else {
-        valorTotal = quantidade * valorUnTotal; // Multiplica pela quantidade diretamente
+        valorTotal = quantidade * valorUnTotal; // Usa valor_un_total diretamente
     }
 
     document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorTotal)}`;
@@ -137,8 +137,8 @@ function addEventListeners() {
             if (this.checked) {
                 selectedItems.set(id, { 
                     desc, 
-                    valor: parseFloat(valor) || 0, 
-                    valor_total: parseFloat(valorTotal) || 0, 
+                    valor: parseFloat(valor) || 0, // Apenas para Lote 1
+                    valor_total: parseFloat(valorTotal) || 0, // Para Lotes 2, 3, 4
                     quantidade_mensal: parseInt(min), 
                     lote 
                 });
@@ -196,10 +196,10 @@ function addEventListeners() {
         const itens = Array.from(selectedItems).map(([id, data]) => ({
             item: id,
             desc_catmas: data.desc,
-            valor_un_mensal: data.valor,
+            valor_un_mensal: data.lote == 1 ? data.valor : 0, // Apenas para Lote 1
             qtde_mensal: data.quantidade_mensal,
             qtde_total: data.lote == 1 ? data.quantidade_mensal * 36 : data.quantidade_mensal,
-            valor_un_total: data.lote == 1 ? data.valor * 36 : data.valor_total,
+            valor_un_total: data.lote == 1 ? data.valor * 36 : data.valor_total, // Usa valor_total diretamente para Lotes 2, 3, 4
             valor_total: data.lote == 1 ? data.valor * data.quantidade_mensal * 36 : data.quantidade_mensal * data.valor_total
         }));
 
