@@ -21,7 +21,7 @@ export default async function handler(req, res) {
             const { search = "", lote } = req.query;
             let query = supabase
                 .from("licencas")
-                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, qtde_minima, lote, alerta"); // Incluído alerta aqui
+                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, valor_un_total, qtde_minima, lote, alerta"); // Incluído alerta aqui
 
             if (lote) query = query.eq("lote", lote);
             if (search) query = query.or(`desc_catmas.ilike.%${search}%,sku.ilike.%${search}%`);
