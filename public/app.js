@@ -43,7 +43,7 @@ async function fetchItems() {
 }
 
 // Renderiza a tabela principal
-    function renderTable(items) {
+function renderTable(items) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
 
@@ -54,13 +54,13 @@ async function fetchItems() {
 
         let quantidadeTotal, valorUnTotal, valorTotal;
 
-        // 🔹 Ajuste para LOTE 2, 3 e 4
+        // 🔹 Ajuste para os lotes 2, 3 e 4
         if ([2, 3, 4].includes(Number(item.lote))) {
-            quantidadeTotal = quantidadeMensal; // Sem multiplicar por 36
-            valorUnTotal = parseFloat(item.valor_un_total) || 0; // Usa o valor_un_total diretamente
+            quantidadeTotal = quantidadeMensal; // Apenas a quantidade selecionada
+            valorUnTotal = parseFloat(item.valor_un_total) || 0; // Buscar diretamente do Supabase
             valorTotal = quantidadeMensal * valorUnTotal; // Multiplicação correta
         } else {
-            // 🔹 Para LOTE 1 (mantém a lógica antiga)
+            // 🔹 Para o lote 1 (mantém a lógica antiga)
             quantidadeTotal = quantidadeMensal * 36;
             valorUnTotal = parseFloat(item.valor_un_mensal) * 36;
             valorTotal = quantidadeMensal * valorUnTotal;
@@ -68,7 +68,7 @@ async function fetchItems() {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" data-desc="${item.desc_catmas}" data-valor="${item.valor_un_mensal}" data-min="${qtdeMinima}" data-lote="${item.lote}" data-alerta="${item.alerta || ''}" ${isChecked ? 'checked' : ''}></td>
+            <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" data-desc="${item.desc_catmas}" data-valor="${item.valor_un_mensal}" data-valor-total="${item.valor_un_total}" data-min="${qtdeMinima}" data-lote="${item.lote}" data-alerta="${item.alerta || ''}" ${isChecked ? 'checked' : ''}></td>
             <td>${item.item}</td>
             <td>${item.cod_catmas || '-'}</td>
             <td>${item.sku || '-'}</td>
@@ -83,21 +83,20 @@ async function fetchItems() {
 
     addEventListeners();
     updateSelectedItems();
-    }
+}
+
 
 
 // Atualiza dinamicamente uma linha específica da tabela
-function updateTableRow(id, quantidadeMensal, valorUnMensal, lote) {
-    let quantidadeTotal, valorUnTotal, valorTotal;
+function updateTableRow(id, quantidadeMensal, valorUnMensal, valorUnTotal, lote) {
+    let quantidadeTotal, valorTotal;
 
     if ([2, 3, 4].includes(Number(lote))) {
-        quantidadeTotal = quantidadeMensal; 
-        valorUnTotal = parseFloat(document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent.replace("R$ ", "").replace(",", ".")) || 0;
-        valorTotal = quantidadeMensal * valorUnTotal;
+        quantidadeTotal = quantidadeMensal;
+        valorTotal = quantidadeMensal * valorUnTotal; // Multiplicação correta
     } else {
         quantidadeTotal = quantidadeMensal * 36;
-        valorUnTotal = valorUnMensal * 36;
-        valorTotal = quantidadeMensal * valorUnTotal;
+        valorTotal = quantidadeMensal * valorUnMensal * 36;
     }
 
     document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
@@ -146,6 +145,7 @@ function addEventListeners() {
         input.addEventListener('input', function () {
             const id = this.dataset.id;
             const lote = document.querySelector(`.item-checkbox[data-id="${id}"]`).dataset.lote;
+            const valorUnTotal = parseFloat(document.querySelector(`.valor-un-total[data-id="${id}"]`).textContent.replace("R$ ", "").replace(",", ".")) || 0;
             let quantidadeMensal = parseInt(this.value) || 0;
             const min = parseInt(this.min);
             if (quantidadeMensal < min) quantidadeMensal = min;
@@ -154,11 +154,12 @@ function addEventListeners() {
             if (selectedItems.has(id)) {
                 selectedItems.get(id).quantidade_mensal = quantidadeMensal;
                 const valorUnMensal = selectedItems.get(id).valor;
-                updateTableRow(id, quantidadeMensal, valorUnMensal, lote);
+                updateTableRow(id, quantidadeMensal, valorUnMensal, valorUnTotal, lote);
                 updateSelectedItems();
             }
         });
     });
+    
     
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
