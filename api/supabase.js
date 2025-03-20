@@ -19,7 +19,25 @@ export default async function handler(req, res) {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    if (req.method === "POST") {
+    if (req.method === "GET") {
+        try {
+            const { search = "", lote } = req.query;
+            let query = supabase
+                .from("licencas")
+                .select("item, cod_catmas, sku, desc_catmas, valor_un_mensal, valor_un_total, qtde_minima, lote, alerta");
+
+            if (lote) query = query.eq("lote", lote);
+            if (search) query = query.or(`desc_catmas.ilike.%${search}%,sku.ilike.%${search}%`);
+
+            const { data, error } = await query;
+            if (error) throw error;
+
+            return res.status(200).json(data);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    } 
+    else if (req.method === "POST") {
         try {
             const { itens, nome, email, telefone, orgao } = req.body;
 
@@ -113,7 +131,8 @@ export default async function handler(req, res) {
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
-    } else {
+    } 
+    else {
         return res.status(405).json({ error: "Método não permitido" });
     }
 }
