@@ -78,7 +78,9 @@ export default async function handler(req, res) {
                     telefone,
                     orgao
                 };
-            }).filter(it => it !== null);
+            })
+              .filter(it => it !== null)
+              .sort((a, b) => a.item - b.item);
 
             if (itensCompletos.length === 0) {
                 return res.status(400).json({ error: "Nenhum item válido para salvar." });
