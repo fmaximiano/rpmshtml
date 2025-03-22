@@ -52,7 +52,7 @@ export default async function handler(req, res) {
             const itemIds = itens.map(i => Number(i.item));
             const { data: itemsData, error: fetchError } = await supabase
                 .from("licencas")
-                .select("item, cod_catmas, desc_catmas, valor_un_mensal, valor_un_total, lote")
+                .select("item, cod_catmas, desc_catmas, valor_un_mensal, valor_un_total, lote, sku, qtde_minima")
                 .in("item", itemIds);
 
             if (fetchError) throw fetchError;
