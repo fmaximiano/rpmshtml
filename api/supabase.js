@@ -65,7 +65,7 @@ export default async function handler(req, res) {
                     item: itemBanco.item,
                     cod_catmas: itemBanco.cod_catmas,
                     desc_catmas: itemBanco.desc_catmas,
-                    quantidade: itemBanco.qtde_total
+                    qtde_total: itemBanco.qtde_total
                 };
             }).filter(it => it !== null);
 
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
                     <tr>
                         <td>${item.cod_catmas}</td>
                         <td>${item.desc_catmas}</td>
-                        <td>${item.quantidade}</td>
+                        <td>${item.qtde_total}</td>
                     </tr>
                 `;
             });
