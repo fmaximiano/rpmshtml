@@ -65,7 +65,7 @@ export default async function handler(req, res) {
                     item: itemBanco.item,
                     cod_catmas: itemBanco.cod_catmas,
                     desc_catmas: itemBanco.desc_catmas,
-                    quantidade: itemBanco.lote == 1 ? it.qtde_total : it.qtde_mensal
+                    quantidade: itemBanco.qtde_total
                 };
             }).filter(it => it !== null);
 
