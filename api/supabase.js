@@ -94,6 +94,8 @@ export default async function handler(req, res) {
                 <table border="1" cellspacing="0" cellpadding="5">
                     <thead>
                         <tr>
+                            <th>Lote</th>
+                            <th>Item</th>
                             <th>Código CATMAS</th>
                             <th>Descrição CATMAS</th>
                             <th>Quantidade</th>
@@ -105,6 +107,8 @@ export default async function handler(req, res) {
             itensCompletos.forEach(item => {
                 tabelaHTML += `
                     <tr>
+                        <td>${item.lote}</td>
+                        <td>${item.item}</td>
                         <td>${item.cod_catmas}</td>
                         <td>${item.desc_catmas}</td>
                         <td>${item.qtde_total}</td>
