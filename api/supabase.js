@@ -65,7 +65,11 @@ export default async function handler(req, res) {
                     item: itemBanco.item,
                     cod_catmas: itemBanco.cod_catmas,
                     desc_catmas: itemBanco.desc_catmas,
-                    qtde_total: itemBanco.qtde_total
+                    qtde_total: itemBanco.qtde_total,
+                    nome,
+                    email,
+                    telefone,
+                    orgao
                 };
             }).filter(it => it !== null);
 
