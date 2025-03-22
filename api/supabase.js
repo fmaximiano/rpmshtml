@@ -60,12 +60,19 @@ export default async function handler(req, res) {
             const itensCompletos = itens.map(it => {
                 const itemBanco = itemsData.find(dbItem => dbItem.item === Number(it.item));
                 if (!itemBanco) return null;
-
+            
                 return {
                     item: itemBanco.item,
                     cod_catmas: itemBanco.cod_catmas,
                     desc_catmas: itemBanco.desc_catmas,
-                    qtde_total: itemBanco.qtde_total,
+                    lote: itemBanco.lote,
+                    qtde_mensal: it.qtde_mensal,
+                    qtde_total: it.qtde_total,
+                    valor_un_mensal: it.valor_un_mensal,
+                    valor_un_total: it.valor_un_total,
+                    valor_total: it.valor_total,
+                    lote: it.lote,
+                    qtde_minima: it.qtde_minima,
                     nome,
                     email,
                     telefone,
