@@ -60,36 +60,41 @@ function renderTable(items) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
 
+    const excecoesCodCatmas = ['126403', '126608', '126519'];
+
     items.sort((a, b) => a.item - b.item).forEach(item => {
-        const isChecked = selectedItems.has(item.item);
-        const quantidade = isChecked ? selectedItems.get(item.item).quantidade_mensal : 0;
+        const id = String(item.item);
+        const isChecked = selectedItems.has(id);
+        const quantidade = isChecked ? selectedItems.get(id).quantidade_mensal : 0;
         const qtdeMinima = item.qtde_minima || 1;
         const lote = Number(item.lote);
 
         let quantidadeTotal, valorUnTotal, valorTotal;
 
+        const multiplicador = (lote === 1 && excecoesCodCatmas.includes(item.cod_catmas)) ? 1 : 36;
+
         if (lote === 1) {
-            valorUnTotal = parseFloat(item.valor_un_mensal) * 36; // Lote 1 usa valor_un_mensal
-            quantidadeTotal = quantidade * 36;
+            valorUnTotal = parseFloat(item.valor_un_mensal) * multiplicador;
+            quantidadeTotal = quantidade * multiplicador;
             valorTotal = quantidade * valorUnTotal;
         } else {
-            valorUnTotal = parseFloat(item.valor_un_total) || 0; // Lotes 2, 3, 4 usam valor_un_total diretamente do BD
-            quantidadeTotal = quantidade; // Não exibido
-            valorTotal = quantidade * valorUnTotal; // Cálculo simples: quantidade * valor_un_total
+            valorUnTotal = parseFloat(item.valor_un_total) || 0;
+            quantidadeTotal = quantidade;
+            valorTotal = quantidade * valorUnTotal;
         }
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="checkbox" class="item-checkbox" data-id="${item.item}" data-desc="${item.desc_catmas}" data-valor="${item.valor_un_mensal || 0}" data-valor-total="${item.valor_un_total || 0}" data-min="${qtdeMinima}" data-lote="${item.lote}" data-alerta="${item.alerta || ''}" ${isChecked ? 'checked' : ''}></td>
+            <td><input type="checkbox" class="item-checkbox" data-id="${id}" data-cod_catmas="${item.cod_catmas}" data-desc="${item.desc_catmas}" data-valor="${item.valor_un_mensal || 0}" data-valor-total="${item.valor_un_total || 0}" data-min="${qtdeMinima}" data-lote="${item.lote}" data-alerta="${item.alerta || ''}" ${isChecked ? 'checked' : ''}></td>
             <td>${item.item}</td>
             <td>${item.cod_catmas || '-'}</td>
             <td>${item.sku || '-'}</td>
             <td>${item.desc_catmas}</td>
             ${lote === 1 ? `<td>R$ ${formatarNumero(item.valor_un_mensal)}</td>` : ''}
-            <td><input type="number" class="quantidade-input" data-id="${item.item}" value="${quantidade}" min="${qtdeMinima}" ${isChecked ? '' : 'disabled'}></td>
-            ${lote === 1 ? `<td class="quantidade-total" data-id="${item.item}">${quantidadeTotal}</td>` : ''}
-            <td class="valor-un-total" data-id="${item.item}">R$ ${formatarNumero(valorUnTotal)}</td>
-            <td class="valor-total" data-id="${item.item}">R$ ${formatarNumero(valorTotal)}</td>`;
+            <td><input type="number" class="quantidade-input" data-id="${id}" value="${quantidade}" min="${qtdeMinima}" ${isChecked ? '' : 'disabled'}></td>
+            ${lote === 1 ? `<td class="quantidade-total" data-id="${id}">${quantidadeTotal}</td>` : ''}
+            <td class="valor-un-total" data-id="${id}">R$ ${formatarNumero(valorUnTotal)}</td>
+            <td class="valor-total" data-id="${id}">R$ ${formatarNumero(valorTotal)}</td>`;
         tbody.appendChild(tr);
     });
 
@@ -97,26 +102,28 @@ function renderTable(items) {
     updateSelectedItems();
 }
 
-function updateTableRow(id, quantidade, valorUnMensal, valorUnTotal, lote) {
-    let valorTotal;
+function updateTableRow(id, quantidade, valorUnMensal, valorUnTotal, lote, cod_catmas) {
+    const excecoesCodCatmas = ['126403', '126608', '126519'];
+    const multiplicador = lote == 1 && excecoesCodCatmas.includes(cod_catmas) ? 1 : 36;
 
-    if (lote == 1) {
-        const quantidadeTotal = quantidade * 36;
-        valorTotal = quantidade * (valorUnMensal * 36);
-        document.querySelector(`.quantidade-total[data-id="${id}"]`).textContent = quantidadeTotal;
-    } else {
-        valorTotal = quantidade * valorUnTotal; // Usa valor_un_total diretamente
-    }
+    const quantidadeTotal = lote == 1 ? quantidade * multiplicador : quantidade;
+    const valorTotal = quantidade * (lote == 1 ? valorUnMensal * multiplicador : valorUnTotal);
 
-    document.querySelector(`.valor-total[data-id="${id}"]`).textContent = `R$ ${formatarNumero(valorTotal)}`;
+    const qtdeEl = document.querySelector(`.quantidade-total[data-id="${id}"]`);
+    const valorEl = document.querySelector(`.valor-total[data-id="${id}"]`);
+
+    if (qtdeEl) qtdeEl.textContent = quantidadeTotal;
+    if (valorEl) valorEl.textContent = `R$ ${formatarNumero(valorTotal)}`;
 }
 
 function updateSelectedItems() {
     const selectedList = document.getElementById('selectedList');
     selectedList.innerHTML = '';
     selectedItems.forEach((data, id) => {
-        const valorTotal = data.lote == 1 
-            ? data.quantidade_mensal * data.valor * 36 
+        const excecoesCodCatmas = ['126403', '126608', '126519'];
+        const multiplicador = (data.lote == 1 && excecoesCodCatmas.includes(data.cod_catmas)) ? 1 : 36;
+        const valorTotal = data.lote == 1
+            ? data.quantidade_mensal * data.valor * multiplicador
             : data.quantidade_mensal * data.valor_total;
         selectedList.innerHTML += `
             <li>
@@ -130,28 +137,38 @@ function updateSelectedItems() {
 function addEventListeners() {
     document.querySelectorAll('.item-checkbox').forEach(cb => {
         cb.addEventListener('change', function () {
-            const { id, desc, valor, valorTotal, min, lote, alerta } = this.dataset;
+            const { id, desc, valor, valorTotal, min, lote, alerta, cod_catmas } = this.dataset;
             const quantidadeInput = document.querySelector(`.quantidade-input[data-id="${id}"]`);
             const alertaDiv = document.getElementById('alerta-item');
 
+            const valorUnMensal = parseFloat(valor) || 0;
+            const valorUnTotal = parseFloat(valorTotal) || 0;
+
             if (this.checked) {
-                selectedItems.set(id, { 
-                    desc, 
-                    valor: parseFloat(valor) || 0, // Apenas para Lote 1
-                    valor_total: parseFloat(valorTotal) || 0, // Para Lotes 2, 3, 4
-                    quantidade_mensal: parseInt(min), 
-                    lote 
+                selectedItems.set(id, {
+                    desc,
+                    cod_catmas,
+                    valor: valorUnMensal,
+                    valor_total: valorUnTotal,
+                    quantidade_mensal: parseInt(min),
+                    lote
                 });
+
                 quantidadeInput.disabled = false;
                 quantidadeInput.value = min;
+
+                updateTableRow(id, parseInt(min), valorUnMensal, valorUnTotal, lote, cod_catmas);
+                updateSelectedItems();
                 alertaDiv.textContent = alerta && alerta.trim() !== "" ? alerta : "";
             } else {
                 selectedItems.delete(id);
                 quantidadeInput.disabled = true;
                 quantidadeInput.value = 0;
+
+                updateTableRow(id, 0, valorUnMensal, valorUnTotal, lote, cod_catmas);
+                updateSelectedItems();
                 alertaDiv.textContent = "";
             }
-            updateSelectedItems();
         });
     });
 
@@ -166,7 +183,10 @@ function addEventListeners() {
             if (selectedItems.has(id)) {
                 const item = selectedItems.get(id);
                 item.quantidade_mensal = quantidade;
-                updateTableRow(id, quantidade, item.valor, item.valor_total, item.lote);
+
+                const cod_catmas = document.querySelector(`.item-checkbox[data-id="${id}"]`)?.dataset.cod_catmas || "";
+
+                updateTableRow(id, quantidade, item.valor, item.valor_total, item.lote, cod_catmas);
                 updateSelectedItems();
             }
         });
@@ -193,15 +213,20 @@ function addEventListeners() {
             return alert("Preencha todos os campos e selecione itens.");
         }
 
-        const itens = Array.from(selectedItems).map(([id, data]) => ({
-            item: id,
-            desc_catmas: data.desc,
-            valor_un_mensal: data.lote == 1 ? data.valor : 0, // Apenas para Lote 1
-            qtde_mensal: data.quantidade_mensal,
-            qtde_total: data.lote == 1 ? data.quantidade_mensal * 36 : data.quantidade_mensal,
-            valor_un_total: data.lote == 1 ? data.valor * 36 : data.valor_total, // Usa valor_total diretamente para Lotes 2, 3, 4
-            valor_total: data.lote == 1 ? data.valor * data.quantidade_mensal * 36 : data.quantidade_mensal * data.valor_total
-        }));
+        const itens = Array.from(selectedItems).map(([id, data]) => {
+            const excecoesCodCatmas = ['126403', '126608', '126519'];
+            const multiplicador = (data.lote == 1 && excecoesCodCatmas.includes(data.cod_catmas)) ? 1 : 36;
+
+            return {
+                item: id,
+                desc_catmas: data.desc,
+                valor_un_mensal: data.lote == 1 ? data.valor : 0,
+                qtde_mensal: data.quantidade_mensal,
+                qtde_total: data.lote == 1 ? data.quantidade_mensal * multiplicador : data.quantidade_mensal,
+                valor_un_total: data.lote == 1 ? data.valor * multiplicador : data.valor_total,
+                valor_total: data.lote == 1 ? data.valor * data.quantidade_mensal * multiplicador : data.quantidade_mensal * data.valor_total
+            };
+        });
 
         const res = await fetch(API_URL, {
             method: "POST",
@@ -219,4 +244,6 @@ function addEventListeners() {
     };
 }
 
-fetchItems();
+document.addEventListener('DOMContentLoaded', () => {
+    fetchItems();
+});

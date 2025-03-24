@@ -131,7 +131,7 @@ export default async function handler(req, res) {
 
             const mailOptions = {
                 from: `"Sistema de Seleção de Itens" <${GMAIL_USER}>`,
-                to: `${email}, fmaximiano@outlook.com`,
+                to: `${email}, rosalvo.franca@planejamento.mg.gov.br, frederico.maximiano@planejamento.mg.gov.br`,
                 subject: "Confirmação de Seleção de Itens",
                 html: `
                     <p>Olá, ${nome},</p>
