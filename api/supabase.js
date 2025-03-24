@@ -135,10 +135,11 @@ export default async function handler(req, res) {
                 subject: "Confirmação de Seleção de Itens",
                 html: `
                     <p>Olá, ${nome},</p>
-                    <p>Segue abaixo a lista de itens selecionados para o órgão ${orgao}.</p>
+                    <p>Segue abaixo a relação dos itens selecionados para o órgão ${orgao}, com os respectivos quantitativos, <b>QUE DEVERÃO SER INSERIDOS NO SIRP:</b></p>
                     ${tabelaHTML}
-                    <p>Se precisar de ajustes, entre em contato.</p>
-                    <p>Atenciosamente,<br>Sistema de Seleção de Itens</p>
+                    <p>Ressaltamos a importância de realizar a adesão no SIRP dentro do prazo estabelecido, a fim de garantir a participação no presente registro de preços.</p>
+                    <p>Caso haja necessidade de ajustes ou esclarecimentos, gentileza entrar em contato no Whatsapp 31 97125-0204.</p>
+                    <p>Atenciosamente,<br>Diretoria Central de Gestão de Serviços e Infraestrutura de Tecnologia de Informação e Comunicação</p>
                 `,
             };
 
